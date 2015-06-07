@@ -1,75 +1,60 @@
 What is it?
 ------------
 
-A Android API to the Simplify Commerce payments platform.   If you have
-not already got an account sign up at https://www.simplify.com/commerce.
+The Android SDK by Simplify allows you to create a card token (one time use token representing card details) in your Android app to send to a server to enable it to make a payment. By creating a card token, Simplify allows you to avoid sending card details to your server. The SDK can help with formatting and validating card information before the information is tokenized.
 
 
-Installation
-------------
+Download
+--------
 
-Include the ‘library’ directory as an Android library dependency in your project
+You can include the SDK in your app by adding it as a gradle dependency:
+
+    compile 'com.simplify:sdk-android:1.0.2'
+
+or via Maven:
+
+    <dependency>
+        <groupId>com.simplify</groupId>
+        <artifactId>sdk-android</artifactId>
+        <version>1.0.2</version>
+    </dependency>
 
 
 Using the SDK
 --------------
 
-To create a token through Simplify Commerce, use the following script
-substituting you public API key:
+To create a token through Simplify Commerce, use the following script, substituting your public API key:
 
+    Simplify simplify = new Simplify({YOUR-PUBLIC-KEY});
 
-// create a Simplify object
-Simplify simplify = new Simplify({YOUR-PUBLIC-KEY});
+Create a token callback
 
-// create a token callback
-Simplify.CreateCardTokenListener listener = new Simplify.CreateCardTokenListener()
-{
-  @Override
-  public void onSuccess(Token token)
-  {
-      Log.i("Simplify", "Created Token: " + token.getId());
+    Simplify.CreateCardTokenListener listener = new Simplify.CreateCardTokenListener()
+    {
+        @Override
+        public void onSuccess(Token token)
+        {
+            Log.i("Simplify", "Created Token: " + token.getId());
 
-      // TODO your business logic to complete payment...
-  }
+            // TODO your business logic to complete payment...
+        }
 
-  @Override
-  public void onError(SimplifyError error)
-  {
-      Log.e("Simplify", "Error Creating Token: " + error.getMessage());
-  }
-}
+        @Override
+        public void onError(SimplifyError error)
+        {
+            Log.e("Simplify", "Error Creating Token: " + error.getMessage());
+        }
+    }
 
-// request the token
-AsyncTask<?, ?, ?> createTokenTask = simplify.createCardToken({CARD-NUMBER}, {EXP-MONTH}, {EXP-YEAR}, {CVC}, listener);
+Request the token
+
+    AsyncTask<?, ?, ?> createTokenTask = simplify.createCardToken({CARD-NUMBER}, {EXP-MONTH}, {EXP-YEAR}, {CVC}, listener);
 
 
 For more examples see https://www.simplify.com/commerce/docs/sdk/android.
 
-Version
--------
-
-This is version 1.0.1 of the SDK. For an up-to-date version check at
-https://www.simplify.com/commerce/docs/sdk/android.
-
-Licensing
----------
-
-Please see LICENSE.txt for details.
-
-Documentation
--------------
-
-API documentation is available in the library/docs directory in HTML.  For more
-detailed information on the API with examples visit the online
-documentation at https://www.simplify.com/commerce/docs/sdk/android.
 
 Support
 -------
 
-Please see https://www.simplify.com/commerce/docs/support for information.
-
-Copyright
----------
-
-Copyright (c) 2013, 2014 MasterCard International Incorporated
-All rights reserved.
+For Simplify related support inquiries, visit [simplify.desk.com](https://simplify.desk.com)

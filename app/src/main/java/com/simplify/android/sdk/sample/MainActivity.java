@@ -8,7 +8,6 @@ import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.Button;
 
 import com.simplify.android.sdk.Simplify;
 import com.simplify.android.sdk.model.Card;
