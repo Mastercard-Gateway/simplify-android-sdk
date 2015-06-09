@@ -7,16 +7,18 @@ The Android SDK by Simplify allows you to create a card token (one time use toke
 Download
 --------
 
+[![Download](https://api.bintray.com/packages/simplify/Android/simplify-sdk-android/images/download.svg)](https://bintray.com/simplify/Android/simplify-sdk-android/_latestVersion)
+
 You can include the SDK in your app by adding it as a gradle dependency:
 
-    compile 'com.simplify:sdk-android:1.0.2'
+    compile 'com.simplify:sdk-android:1.0.3'
 
 or via Maven:
 
     <dependency>
         <groupId>com.simplify</groupId>
         <artifactId>sdk-android</artifactId>
-        <version>1.0.2</version>
+        <version>1.0.3</version>
     </dependency>
 
 
@@ -57,4 +59,4 @@ For more examples see https://www.simplify.com/commerce/docs/sdk/android.
 Support
 -------
 
-For Simplify related support inquiries, visit [simplify.desk.com](https://simplify.desk.com)
+For support inquiries, visit [simplify.desk.com](https://simplify.desk.com)
