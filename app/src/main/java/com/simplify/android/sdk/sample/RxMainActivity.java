@@ -9,13 +9,16 @@ import android.view.View.OnClickListener;
 import android.view.inputmethod.InputMethodManager;
 
 import com.simplify.android.sdk.Card;
-import com.simplify.android.sdk.CardToken;
 import com.simplify.android.sdk.CardEditor;
+import com.simplify.android.sdk.CardToken;
 import com.simplify.android.sdk.Simplify;
 
-public class MainActivity extends Activity {
+import rx.Observable;
+import rx.Observer;
 
-    private static final String TAG = MainActivity.class.getSimpleName();
+public class RxMainActivity extends Activity {
+
+    private static final String TAG = RxMainActivity.class.getSimpleName();
 
     CardEditor mCardEditor;
 
@@ -39,17 +42,24 @@ public class MainActivity extends Activity {
 
                 Card card = mCardEditor.getCard();
 
-                Simplify.createCardToken(card, new CardToken.Callback() {
+                Observable<CardToken> observable = Simplify.createCardToken(card);
+
+                observable.subscribe(new Observer<CardToken>() {
                     @Override
-                    public void onSuccess(CardToken cardToken) {
-                        Log.i(TAG, "Created Token: " + cardToken.getId());
-                        mCardEditor.showSuccessOverlay("Created card token " + cardToken.getId());
+                    public void onCompleted() {
+
                     }
 
                     @Override
-                    public void onError(Throwable throwable) {
-                        Log.e(TAG, "Error Creating Token: " + throwable.getMessage());
-                        mCardEditor.showErrorOverlay("Unable to retrieve card token. " + throwable.getMessage());
+                    public void onError(Throwable e) {
+                        Log.e(TAG, "Error Creating Token: " + e.getMessage());
+                        mCardEditor.showErrorOverlay("Unable to retrieve card token. " + e.getMessage());
+                    }
+
+                    @Override
+                    public void onNext(CardToken cardToken) {
+                        Log.i(TAG, "Created Token: " + cardToken.getId());
+                        mCardEditor.showSuccessOverlay("Created card token " + cardToken.getId());
                     }
                 });
             }

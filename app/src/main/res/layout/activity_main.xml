@@ -6,7 +6,7 @@
     android:orientation="vertical"
     tools:context="${packageName}.${activityClass}">
 
-    <com.simplify.android.sdk.view.CardEditor
+    <com.simplify.android.sdk.CardEditor
         android:id="@+id/card_editor"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
