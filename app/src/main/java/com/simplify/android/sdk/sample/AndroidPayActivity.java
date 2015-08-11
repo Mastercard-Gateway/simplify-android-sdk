@@ -8,7 +8,7 @@ import com.google.android.gms.wallet.FullWallet;
 import com.google.android.gms.wallet.MaskedWallet;
 import com.simplify.android.sdk.Simplify;
 
-public class AndroidPayActivity extends Activity implements Simplify.WalletCallback {
+public class AndroidPayActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -19,30 +19,24 @@ public class AndroidPayActivity extends Activity implements Simplify.WalletCallb
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
-        if (Simplify.handleWalletResult(requestCode, resultCode, data, this)) {
+        if (Simplify.handleWalletResult(requestCode, resultCode, data, new MyWalletCallback())) {
             return;
         }
 
         super.onActivityResult(requestCode, resultCode, data);
     }
 
-    @Override
-    public void onReceivedMaskedWallet(MaskedWallet maskedWallet) {
 
-    }
+    class MyWalletCallback extends Simplify.WalletCallback {
 
-    @Override
-    public void onReceivedFullWallet(FullWallet fullWallet) {
+        @Override
+        public void onReceivedMaskedWallet(MaskedWallet maskedWallet) {
 
-    }
+        }
 
-    @Override
-    public void onWalletCancelled() {
+        @Override
+        public void onReceivedFullWallet(FullWallet fullWallet) {
 
-    }
-
-    @Override
-    public void onWalletError(int errorCode) {
-
+        }
     }
 }
