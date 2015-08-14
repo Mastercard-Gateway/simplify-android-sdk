@@ -6,6 +6,12 @@
     android:orientation="vertical"
     tools:context="${packageName}.${activityClass}">
 
+    <FrameLayout
+        android:id="@+id/buy_button_holder"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="10dp"/>
+
     <com.simplify.android.sdk.CardEditor
         android:id="@+id/card_editor"
         android:layout_width="match_parent"
