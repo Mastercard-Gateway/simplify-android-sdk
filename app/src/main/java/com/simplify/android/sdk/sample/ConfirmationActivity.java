@@ -75,13 +75,17 @@ public class ConfirmationActivity extends AppCompatActivity implements
     @Override
     protected void onStart() {
         super.onStart();
+
+        Simplify.addAndroidPayCallback(mAndroidPayCallback);
         mGoogleApiClient.connect();
     }
 
     @Override
     protected void onStop() {
-        super.onStop();
         mGoogleApiClient.disconnect();
+        Simplify.removeAndroidPayCallback(mAndroidPayCallback);
+
+        super.onStop();
     }
 
     void showConfirmationScreen(MaskedWallet maskedWallet) {
@@ -151,7 +155,7 @@ public class ConfirmationActivity extends AppCompatActivity implements
 
     private FullWalletRequest getFullWalletRequest(String googleTransactionId) {
 
-        FullWalletRequest fullWalletRequest = FullWalletRequest.newBuilder()
+        return FullWalletRequest.newBuilder()
                 .setGoogleTransactionId(googleTransactionId)
                 .setCart(Cart.newBuilder()
                         .setCurrencyCode(CURRENCY_CODE_USD)
@@ -171,15 +175,14 @@ public class ConfirmationActivity extends AppCompatActivity implements
                                 .build())
                         .build())
                 .build();
-        return fullWalletRequest;
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        if (Simplify.handleAndroidPayResult(requestCode,resultCode, data, mAndroidPayCallback)) {
+        if (Simplify.handleAndroidPayResult(requestCode,resultCode, data)) {
             return;
         }
+
+        super.onActivityResult(requestCode, resultCode, data);
     }
 }

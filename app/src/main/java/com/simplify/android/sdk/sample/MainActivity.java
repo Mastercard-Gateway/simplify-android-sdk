@@ -24,11 +24,9 @@ import com.google.android.gms.wallet.fragment.WalletFragmentOptions;
 import com.google.android.gms.wallet.fragment.WalletFragmentStyle;
 import com.simplify.android.sdk.AndroidPayCallback;
 import com.simplify.android.sdk.Card;
-import com.simplify.android.sdk.CardToken;
 import com.simplify.android.sdk.CardEditor;
+import com.simplify.android.sdk.CardToken;
 import com.simplify.android.sdk.Simplify;
-
-import rx.functions.Action1;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -39,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
     CardEditor mCardEditor;
 
     //callback can be used in onActivityResult to get back MaskedWallet
-    AndroidPayCallback mAndroidPayCallback = new AndroidPayCallback(){
+    AndroidPayCallback mAndroidPayCallback = new AndroidPayCallback() {
         @Override
         public void onReceivedMaskedWallet(MaskedWallet maskedWallet) {
             super.onReceivedMaskedWallet(maskedWallet);
@@ -58,7 +56,40 @@ public class MainActivity extends AppCompatActivity {
         showGoogleWalletButton();
     }
 
-    void initUI() {
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        // register the Android Pay callback
+        Simplify.addAndroidPayCallback(mAndroidPayCallback);
+    }
+
+    @Override
+    protected void onStop() {
+        Simplify.removeAndroidPayCallback(mAndroidPayCallback);
+
+        super.onStop();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        // to get back MaskedWallet using call back method.
+        if (Simplify.handleAndroidPayResult(requestCode, resultCode, data)) {
+            return;
+        }
+
+        // to get back MaskedWallet using RxJava, use the code snippet below
+        // subscribe to Simplify.getMaskedWalletObservable() to receive maskedwallet object
+        // Refer to onCreate() method for code snippet
+        /*if (Simplify.handleAndroidPayResult(requestCode,resultCode, data)) {
+            return;
+        }*/
+
+        super.onActivityResult(requestCode, resultCode, data);
+    }
+
+
+    private void initUI() {
 
         mCardEditor = (CardEditor) findViewById(R.id.card_editor);
 
@@ -107,7 +138,7 @@ public class MainActivity extends AppCompatActivity {
         });*/
     }
 
-    void showGoogleWalletButton() {
+    private void showGoogleWalletButton() {
 
         // Check if WalletFragment already exists
         SupportWalletFragment walletFragment = (SupportWalletFragment) getSupportFragmentManager()
@@ -117,13 +148,13 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        //buy button style
+        // Define fragment style
         WalletFragmentStyle fragmentStyle = new WalletFragmentStyle()
                 .setBuyButtonText(BuyButtonText.BUY_NOW)
                 .setBuyButtonAppearance(BuyButtonAppearance.CLASSIC)
                 .setBuyButtonWidth(Dimension.MATCH_PARENT);
 
-        //options to set button theme and mode
+        // Define fragment options
         WalletFragmentOptions fragmentOptions = WalletFragmentOptions.newBuilder()
                 .setEnvironment(WalletConstants.ENVIRONMENT_SANDBOX)
                 .setFragmentStyle(fragmentStyle)
@@ -131,71 +162,49 @@ public class MainActivity extends AppCompatActivity {
                 .setMode(WalletFragmentMode.BUY_BUTTON)
                 .build();
 
-        // instantiate the WalletFragment
+        // Create a new instance of WalletFragment
         walletFragment = SupportWalletFragment.newInstance(fragmentOptions);
 
-        //initializing the WalletFragment
+        // Initialize the fragment with start params
+        // Note: If using the provided helper method Simplify.handleAndroidPayResult(int, int, Intent),
+        //       you MUST set the request code to Simplify.REQUEST_CODE_MASKED_WALLET
         WalletFragmentInitParams.Builder startParamsBuilder = WalletFragmentInitParams.newBuilder()
                 .setMaskedWalletRequest(getMaskedWalletRequest())
-                //to redirect onActivityResult() to Simplify,
-                // using below request code Simplify.REQUEST_CODE_MASKED_WALLET is mandatory
                 .setMaskedWalletRequestCode(Simplify.REQUEST_CODE_MASKED_WALLET);
 
         walletFragment.initialize(startParamsBuilder.build());
 
-        // add Wallet fragment to the UI
+        // Add Wallet fragment to the UI
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.buy_button_holder, walletFragment, WALLET_FRAGMENT_ID)
                 .commit();
     }
 
-    MaskedWalletRequest getMaskedWalletRequest() {
+    private MaskedWalletRequest getMaskedWalletRequest() {
 
-        MaskedWalletRequest maskedWalletRequest =
-                MaskedWalletRequest.newBuilder()
-                        .setMerchantName("MasterCard labs")
-                        .setPhoneNumberRequired(true)
-                        .setShippingAddressRequired(true)
+        return MaskedWalletRequest.newBuilder()
+                .setMerchantName("MasterCard labs")
+                .setPhoneNumberRequired(true)
+                .setShippingAddressRequired(true)
+                .setCurrencyCode(CURRENCY_CODE_USD)
+                .setCart(Cart.newBuilder()
                         .setCurrencyCode(CURRENCY_CODE_USD)
-                        .setCart(Cart.newBuilder()
+                        .setTotalPrice("5.00")
+                        .addLineItem(LineItem.newBuilder()
                                 .setCurrencyCode(CURRENCY_CODE_USD)
+                                .setDescription("Mc labs")
+                                .setQuantity("1")
+                                .setUnitPrice("5.00")
                                 .setTotalPrice("5.00")
-                                .addLineItem(LineItem.newBuilder()
-                                        .setCurrencyCode(CURRENCY_CODE_USD)
-                                        .setDescription("Mc labs")
-                                        .setQuantity("1")
-                                        .setUnitPrice("5.00")
-                                        .setTotalPrice("5.00")
-                                        .build())
                                 .build())
-                        .setEstimatedTotalPrice("5.00")
-                        .build();
-
-        return maskedWalletRequest;
-
+                        .build())
+                .setEstimatedTotalPrice("5.00")
+                .build();
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        // to get back MaskedWallet using call back method.
-        if (Simplify.handleAndroidPayResult(requestCode,resultCode, data, mAndroidPayCallback)) {
-            return;
-        }
-
-        // to get back MaskedWallet using RxJava, use the code snippet below
-        // subscribe to Simplify.getMaskedWalletObservable() to receive maskedwallet object
-        // Refer to onCreate() method for code snippet
-        /*if (Simplify.handleAndroidPayResult(requestCode,resultCode, data)) {
-            return;
-        }*/
-    }
-
-    void launchConfirmationActivity(MaskedWallet maskedWallet) {
+    private void launchConfirmationActivity(MaskedWallet maskedWallet) {
         Intent intent = new Intent(getApplicationContext(), ConfirmationActivity.class);
         intent.putExtra(WalletConstants.EXTRA_MASKED_WALLET, maskedWallet);
         startActivity(intent);
     }
-
 }
