@@ -1,13 +1,11 @@
 package com.simplify.android.sdk.sample;
 
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
 
 import com.google.android.gms.wallet.Cart;
 import com.google.android.gms.wallet.LineItem;
@@ -23,7 +21,6 @@ import com.google.android.gms.wallet.fragment.WalletFragmentMode;
 import com.google.android.gms.wallet.fragment.WalletFragmentOptions;
 import com.google.android.gms.wallet.fragment.WalletFragmentStyle;
 import com.simplify.android.sdk.AndroidPayCallback;
-import com.simplify.android.sdk.Card;
 import com.simplify.android.sdk.CardEditor;
 import com.simplify.android.sdk.CardToken;
 import com.simplify.android.sdk.Simplify;
@@ -35,6 +32,7 @@ public class MainActivity extends AppCompatActivity {
     static final String WALLET_FRAGMENT_ID = "wallet_fragment";
 
     CardEditor mCardEditor;
+    Button mPayButton;
 
     //callback can be used in onActivityResult to get back MaskedWallet
     AndroidPayCallback mAndroidPayCallback = new AndroidPayCallback() {
@@ -78,45 +76,22 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        // to get back MaskedWallet using RxJava, use the code snippet below
-        // subscribe to Simplify.getMaskedWalletObservable() to receive maskedwallet object
-        // Refer to onCreate() method for code snippet
-        /*if (Simplify.handleAndroidPayResult(requestCode,resultCode, data)) {
-            return;
-        }*/
-
         super.onActivityResult(requestCode, resultCode, data);
     }
 
 
     private void initUI() {
 
-        mCardEditor = (CardEditor) findViewById(R.id.card_editor);
-
-        mCardEditor.setOnChargeClickListener(new OnClickListener() {
+        mPayButton = (Button) findViewById(R.id.btnPay);
+        mPayButton.setOnClickListener(new OnClickListener() {
             @Override
-            public void onClick(View view) {
-                // hide keyboard
-                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
-
-                Card card = mCardEditor.getCard();
-
-                Simplify.createCardToken(card, new CardToken.Callback() {
-                    @Override
-                    public void onSuccess(CardToken cardToken) {
-                        Log.i(TAG, "Created Token: " + cardToken.getId());
-                        mCardEditor.showSuccessOverlay("Created card token " + cardToken.getId());
-                    }
-
-                    @Override
-                    public void onError(Throwable throwable) {
-                        Log.e(TAG, "Error Creating Token: " + throwable.getMessage());
-                        mCardEditor.showErrorOverlay("Unable to retrieve card token. " + throwable.getMessage());
-                    }
-                });
+            public void onClick(View v) {
+                requestCardToken();
             }
         });
+
+        mCardEditor = (CardEditor) findViewById(R.id.card_editor);
+        mCardEditor.setPayButton(mPayButton);
 
         // init reset button
         findViewById(R.id.btnReset).setOnClickListener(new OnClickListener() {
@@ -125,17 +100,20 @@ public class MainActivity extends AppCompatActivity {
                 mCardEditor.reset();
             }
         });
+    }
 
-        // Redirect onActivityResult() to Simplify to handle MaskedWalletRequest
-        // and return masked wallet object.Refer to onActivityResult() method to know how.
-
-        // to subscribe for MaskedWallet using RxJava
-        /*Simplify.getMaskedWalletObservable().subscribe(new Action1<MaskedWallet>() {
+    private void requestCardToken() {
+        Simplify.createCardToken(mCardEditor.getCard(), new CardToken.Callback() {
             @Override
-            public void call(MaskedWallet maskedWallet) {
-                launchConfirmationActivity(maskedWallet);
+            public void onSuccess(CardToken cardToken) {
+
             }
-        });*/
+
+            @Override
+            public void onError(Throwable throwable) {
+
+            }
+        });
     }
 
     private void showGoogleWalletButton() {
