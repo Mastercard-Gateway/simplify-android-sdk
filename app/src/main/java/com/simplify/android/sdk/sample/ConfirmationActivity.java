@@ -21,12 +21,11 @@ import com.google.android.gms.wallet.fragment.WalletFragmentInitParams;
 import com.google.android.gms.wallet.fragment.WalletFragmentMode;
 import com.google.android.gms.wallet.fragment.WalletFragmentOptions;
 import com.google.android.gms.wallet.fragment.WalletFragmentStyle;
-import com.simplify.android.sdk.AndroidPayCallback;
 import com.simplify.android.sdk.CardToken;
 import com.simplify.android.sdk.Simplify;
 
 public class ConfirmationActivity extends AppCompatActivity implements
-        GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+        GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, Simplify.AndroidPayCallback {
 
     static final String TAG = ConfirmationActivity.class.getSimpleName();
     static final int REQUEST_CODE_FULL_WALLET = 890;
@@ -34,29 +33,7 @@ public class ConfirmationActivity extends AppCompatActivity implements
 
     GoogleApiClient mGoogleApiClient;
     MaskedWallet mMaskedWallet;
-    AndroidPayCallback mAndroidPayCallback = new AndroidPayCallback(){
 
-        @Override
-        public void onReceivedFullWallet(FullWallet fullWallet) {
-
-            // Use fullwallet object to create token
-            if(fullWallet != null) {
-
-                Simplify.createCardToken(fullWallet, new CardToken.Callback() {
-                    @Override
-                    public void onSuccess(CardToken cardToken) {
-                        Log.i(TAG, "Card token created");
-                    }
-
-                    @Override
-                    public void onError(Throwable throwable) {
-                        Log.e(TAG, "Error Creating Token: " + throwable.getMessage());
-                    }
-                });
-            }
-
-        }
-    };
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -76,14 +53,14 @@ public class ConfirmationActivity extends AppCompatActivity implements
     protected void onStart() {
         super.onStart();
 
-        Simplify.addAndroidPayCallback(mAndroidPayCallback);
+        Simplify.addAndroidPayCallback(this);
         mGoogleApiClient.connect();
     }
 
     @Override
     protected void onStop() {
         mGoogleApiClient.disconnect();
-        Simplify.removeAndroidPayCallback(mAndroidPayCallback);
+        Simplify.removeAndroidPayCallback(this);
 
         super.onStop();
     }
@@ -140,6 +117,41 @@ public class ConfirmationActivity extends AppCompatActivity implements
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {}
+
+
+    @Override
+    public void onReceivedMaskedWallet(MaskedWallet maskedWallet) {
+
+    }
+
+    @Override
+    public void onReceivedFullWallet(FullWallet fullWallet) {
+        // Use fullwallet object to create token
+        if(fullWallet != null) {
+
+            Simplify.createCardToken(fullWallet, new CardToken.Callback() {
+                @Override
+                public void onSuccess(CardToken cardToken) {
+                    Log.i(TAG, "Card token created");
+                }
+
+                @Override
+                public void onError(Throwable throwable) {
+                    Log.e(TAG, "Error Creating Token: " + throwable.getMessage());
+                }
+            });
+        }
+    }
+
+    @Override
+    public void onAndroidPayCancelled() {
+
+    }
+
+    @Override
+    public void onAndroidPayError(int errorCode) {
+
+    }
 
     public void onPurchaseConfirm(View view) {
 

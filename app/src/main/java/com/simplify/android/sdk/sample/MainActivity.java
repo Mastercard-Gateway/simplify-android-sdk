@@ -8,6 +8,7 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 
 import com.google.android.gms.wallet.Cart;
+import com.google.android.gms.wallet.FullWallet;
 import com.google.android.gms.wallet.LineItem;
 import com.google.android.gms.wallet.MaskedWallet;
 import com.google.android.gms.wallet.MaskedWalletRequest;
@@ -20,28 +21,23 @@ import com.google.android.gms.wallet.fragment.WalletFragmentInitParams;
 import com.google.android.gms.wallet.fragment.WalletFragmentMode;
 import com.google.android.gms.wallet.fragment.WalletFragmentOptions;
 import com.google.android.gms.wallet.fragment.WalletFragmentStyle;
-import com.simplify.android.sdk.AndroidPayCallback;
 import com.simplify.android.sdk.CardEditor;
 import com.simplify.android.sdk.CardToken;
 import com.simplify.android.sdk.Simplify;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements Simplify.AndroidPayCallback {
 
     private static final String TAG = MainActivity.class.getSimpleName();
-    static final String CURRENCY_CODE_USD = "USD";
-    static final String WALLET_FRAGMENT_ID = "wallet_fragment";
+    private static final String CURRENCY_CODE_USD = "USD";
+    private static final String WALLET_FRAGMENT_ID = "wallet_fragment";
 
-    CardEditor mCardEditor;
-    Button mPayButton;
+    private CardEditor mCardEditor;
+    private Button mPayButton;
 
-    //callback can be used in onActivityResult to get back MaskedWallet
-    AndroidPayCallback mAndroidPayCallback = new AndroidPayCallback() {
-        @Override
-        public void onReceivedMaskedWallet(MaskedWallet maskedWallet) {
-            super.onReceivedMaskedWallet(maskedWallet);
-            launchConfirmationActivity(maskedWallet);
-        }
-    };
+
+    //---------------------------------------------
+    // Life-Cycle
+    //---------------------------------------------
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,13 +54,14 @@ public class MainActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
 
-        // register the Android Pay callback
-        Simplify.addAndroidPayCallback(mAndroidPayCallback);
+        // register Android Pay callback
+        Simplify.addAndroidPayCallback(this);
     }
 
     @Override
     protected void onStop() {
-        Simplify.removeAndroidPayCallback(mAndroidPayCallback);
+        // remove Android Pay callback
+        Simplify.removeAndroidPayCallback(this);
 
         super.onStop();
     }
@@ -80,9 +77,42 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    //---------------------------------------------
+    // Android Pay callback methods
+    //---------------------------------------------
+
+    @Override
+    public void onReceivedMaskedWallet(MaskedWallet maskedWallet) {
+        // launch confirmation activity
+        Intent intent = new Intent(getApplicationContext(), ConfirmationActivity.class);
+        intent.putExtra(WalletConstants.EXTRA_MASKED_WALLET, maskedWallet);
+        startActivity(intent);
+    }
+
+    @Override
+    public void onReceivedFullWallet(FullWallet fullWallet) {
+
+    }
+
+    @Override
+    public void onAndroidPayCancelled() {
+
+    }
+
+    @Override
+    public void onAndroidPayError(int errorCode) {
+
+    }
+
+
+    //---------------------------------------------
+    // Util
+    //---------------------------------------------
+
     private void initUI() {
 
         mPayButton = (Button) findViewById(R.id.btnPay);
+        mPayButton.setEnabled(false);
         mPayButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -91,30 +121,31 @@ public class MainActivity extends AppCompatActivity {
         });
 
         mCardEditor = (CardEditor) findViewById(R.id.card_editor);
-        mCardEditor.setPayButton(mPayButton);
-
-        // init reset button
-        findViewById(R.id.btnReset).setOnClickListener(new OnClickListener() {
+        mCardEditor.addOnStateChangeListener(new CardEditor.OnStateChangedListener() {
             @Override
-            public void onClick(View view) {
-                mCardEditor.reset();
+            public void onStateChange(CardEditor cardEditor) {
+                mPayButton.setEnabled(cardEditor.isValid());
             }
         });
     }
 
+
     private void requestCardToken() {
+        mPayButton.setEnabled(false);
+
         Simplify.createCardToken(mCardEditor.getCard(), new CardToken.Callback() {
             @Override
             public void onSuccess(CardToken cardToken) {
-
+                mPayButton.setEnabled(true);
             }
 
             @Override
             public void onError(Throwable throwable) {
-
+                mPayButton.setEnabled(true);
             }
         });
     }
+
 
     private void showGoogleWalletButton() {
 
@@ -178,11 +209,5 @@ public class MainActivity extends AppCompatActivity {
                         .build())
                 .setEstimatedTotalPrice("5.00")
                 .build();
-    }
-
-    private void launchConfirmationActivity(MaskedWallet maskedWallet) {
-        Intent intent = new Intent(getApplicationContext(), ConfirmationActivity.class);
-        intent.putExtra(WalletConstants.EXTRA_MASKED_WALLET, maskedWallet);
-        startActivity(intent);
     }
 }
