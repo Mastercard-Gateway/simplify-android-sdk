@@ -27,7 +27,7 @@
         android:layout_margin="20dp"
         app:edittext_drawablePadding="8dp"
         app:edittext_height="50dp"
-        app:numberpicker_dividerColor="#ff0000"/>
+        app:numberpicker_dividerColor="#666666"/>
 
     <Button
         android:id="@+id/btnPay"
