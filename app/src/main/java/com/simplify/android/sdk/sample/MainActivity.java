@@ -27,7 +27,6 @@ import com.simplify.android.sdk.Simplify;
 
 public class MainActivity extends AppCompatActivity implements Simplify.AndroidPayCallback {
 
-    private static final String TAG = MainActivity.class.getSimpleName();
     private static final String CURRENCY_CODE_USD = "USD";
     private static final String WALLET_FRAGMENT_ID = "wallet_fragment";
 

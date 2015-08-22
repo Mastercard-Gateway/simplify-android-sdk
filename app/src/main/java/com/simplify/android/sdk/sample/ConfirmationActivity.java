@@ -38,7 +38,6 @@ public class ConfirmationActivity extends AppCompatActivity implements
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.activity_confirm);
 
         //google api client required to request full wallet
