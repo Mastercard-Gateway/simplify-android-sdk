@@ -2,6 +2,7 @@ package com.simplify.android.sdk.sample;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -28,7 +29,6 @@ public class ConfirmationActivity extends AppCompatActivity implements
         GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, Simplify.AndroidPayCallback {
 
     static final String TAG = ConfirmationActivity.class.getSimpleName();
-    static final int REQUEST_CODE_FULL_WALLET = 890;
     static final String CURRENCY_CODE_USD = "USD";
 
     GoogleApiClient mGoogleApiClient;
@@ -45,7 +45,7 @@ public class ConfirmationActivity extends AppCompatActivity implements
 
         mMaskedWallet = getIntent().getParcelableExtra(WalletConstants.EXTRA_MASKED_WALLET);
 
-        showConfirmationScreen(mMaskedWallet);
+        showConfirmationScreen();
     }
 
     @Override
@@ -64,16 +64,25 @@ public class ConfirmationActivity extends AppCompatActivity implements
         super.onStop();
     }
 
-    void showConfirmationScreen(MaskedWallet maskedWallet) {
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (Simplify.handleAndroidPayResult(requestCode,resultCode, data)) {
+            return;
+        }
+
+        super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    void showConfirmationScreen() {
 
         //fragment style for confirmation screen
         WalletFragmentStyle walletFragmentStyle = new WalletFragmentStyle()
                 .setMaskedWalletDetailsBackgroundColor(
-                        getResources().getColor(android.R.color.white))
+                        ContextCompat.getColor(this, android.R.color.white))
                 .setMaskedWalletDetailsButtonBackgroundResource(
                         android.R.color.holo_orange_dark)
                 .setMaskedWalletDetailsLogoTextColor(
-                        getResources().getColor(android.R.color.black));
+                        ContextCompat.getColor(this, android.R.color.black));
 
         WalletFragmentOptions walletFragmentOptions = WalletFragmentOptions.newBuilder()
                 .setEnvironment(WalletConstants.ENVIRONMENT_SANDBOX)
@@ -84,11 +93,12 @@ public class ConfirmationActivity extends AppCompatActivity implements
 
         SupportWalletFragment walletFragment = SupportWalletFragment.newInstance(walletFragmentOptions);
 
-        WalletFragmentInitParams.Builder startParamsBuilder = WalletFragmentInitParams.newBuilder()
-                .setMaskedWallet(maskedWallet)
-                .setMaskedWalletRequestCode(REQUEST_CODE_FULL_WALLET);
+        WalletFragmentInitParams startParams = WalletFragmentInitParams.newBuilder()
+                .setMaskedWallet(mMaskedWallet)
+                .setMaskedWalletRequestCode(Simplify.REQUEST_CODE_MASKED_WALLET)
+                .build();
 
-        walletFragment.initialize(startParamsBuilder.build());
+        walletFragment.initialize(startParams);
 
         // add Wallet fragment to the UI
         getSupportFragmentManager().beginTransaction()
@@ -120,7 +130,7 @@ public class ConfirmationActivity extends AppCompatActivity implements
 
     @Override
     public void onReceivedMaskedWallet(MaskedWallet maskedWallet) {
-
+        mMaskedWallet = maskedWallet;
     }
 
     @Override
@@ -128,7 +138,7 @@ public class ConfirmationActivity extends AppCompatActivity implements
         // Use fullwallet object to create token
         if(fullWallet != null) {
 
-            Simplify.createCardToken(fullWallet, new CardToken.Callback() {
+            Simplify.createAndroidPayCardToken(fullWallet, new CardToken.Callback() {
                 @Override
                 public void onSuccess(CardToken cardToken) {
                     Log.i(TAG, "Card token created");
@@ -158,16 +168,14 @@ public class ConfirmationActivity extends AppCompatActivity implements
             Toast.makeText(this, "No masked wallet, can't confirm", Toast.LENGTH_SHORT).show();
             return;
         }
-        Wallet.Payments.loadFullWallet(mGoogleApiClient,
-                getFullWalletRequest(mMaskedWallet.getGoogleTransactionId()),
-                Simplify.REQUEST_CODE_FULL_WALLET);
 
+        Wallet.Payments.loadFullWallet(mGoogleApiClient, getFullWalletRequest(), Simplify.REQUEST_CODE_FULL_WALLET);
     }
 
-    private FullWalletRequest getFullWalletRequest(String googleTransactionId) {
+    private FullWalletRequest getFullWalletRequest() {
 
         return FullWalletRequest.newBuilder()
-                .setGoogleTransactionId(googleTransactionId)
+                .setGoogleTransactionId(mMaskedWallet.getGoogleTransactionId())
                 .setCart(Cart.newBuilder()
                         .setCurrencyCode(CURRENCY_CODE_USD)
                         .setTotalPrice("10.10")
@@ -186,14 +194,5 @@ public class ConfirmationActivity extends AppCompatActivity implements
                                 .build())
                         .build())
                 .build();
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (Simplify.handleAndroidPayResult(requestCode,resultCode, data)) {
-            return;
-        }
-
-        super.onActivityResult(requestCode, resultCode, data);
     }
 }

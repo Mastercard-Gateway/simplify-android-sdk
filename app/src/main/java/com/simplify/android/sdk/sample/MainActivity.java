@@ -16,7 +16,7 @@ import com.google.android.gms.wallet.WalletConstants;
 import com.google.android.gms.wallet.fragment.BuyButtonAppearance;
 import com.google.android.gms.wallet.fragment.BuyButtonText;
 import com.google.android.gms.wallet.fragment.Dimension;
-import com.google.android.gms.wallet.fragment.SupportWalletFragment;
+import com.google.android.gms.wallet.fragment.WalletFragment;
 import com.google.android.gms.wallet.fragment.WalletFragmentInitParams;
 import com.google.android.gms.wallet.fragment.WalletFragmentMode;
 import com.google.android.gms.wallet.fragment.WalletFragmentOptions;
@@ -43,10 +43,7 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        initUI();
-
-        // adds Google Buy button as fragment
-        showGoogleWalletButton();
+        init();
     }
 
     @Override
@@ -108,7 +105,7 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
     // Util
     //---------------------------------------------
 
-    private void initUI() {
+    private void init() {
 
         mPayButton = (Button) findViewById(R.id.btnPay);
         mPayButton.setEnabled(false);
@@ -120,12 +117,44 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
         });
 
         mCardEditor = (CardEditor) findViewById(R.id.card_editor);
-        mCardEditor.addOnStateChangeListener(new CardEditor.OnStateChangedListener() {
+        mCardEditor.addOnStateChangedListener(new CardEditor.OnStateChangedListener() {
             @Override
             public void onStateChange(CardEditor cardEditor) {
                 mPayButton.setEnabled(cardEditor.isValid());
             }
         });
+
+        // Define fragment style
+        WalletFragmentStyle fragmentStyle = new WalletFragmentStyle()
+                .setBuyButtonText(BuyButtonText.BUY_NOW)
+                .setBuyButtonAppearance(BuyButtonAppearance.CLASSIC)
+                .setBuyButtonWidth(Dimension.MATCH_PARENT);
+
+        // Define fragment options
+        WalletFragmentOptions fragmentOptions = WalletFragmentOptions.newBuilder()
+                .setEnvironment(WalletConstants.ENVIRONMENT_SANDBOX)
+                .setFragmentStyle(fragmentStyle)
+                .setTheme(WalletConstants.THEME_HOLO_LIGHT)
+                .setMode(WalletFragmentMode.BUY_BUTTON)
+                .build();
+
+        // Create a new instance of WalletFragment
+        WalletFragment walletFragment = WalletFragment.newInstance(fragmentOptions);
+
+        // Initialize the fragment with start params
+        // Note: If using the provided helper method Simplify.handleAndroidPayResult(int, int, Intent),
+        //       you MUST set the request code to Simplify.REQUEST_CODE_MASKED_WALLET
+        WalletFragmentInitParams startParams = WalletFragmentInitParams.newBuilder()
+                .setMaskedWalletRequest(getMaskedWalletRequest())
+                .setMaskedWalletRequestCode(Simplify.REQUEST_CODE_MASKED_WALLET)
+                .build();
+
+        walletFragment.initialize(startParams);
+
+        // Add Wallet fragment to the UI
+        getFragmentManager().beginTransaction()
+                .replace(R.id.buy_button_holder, walletFragment, WALLET_FRAGMENT_ID)
+                .commit();
     }
 
 
@@ -145,48 +174,6 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
         });
     }
 
-
-    private void showGoogleWalletButton() {
-
-        // Check if WalletFragment already exists
-        SupportWalletFragment walletFragment = (SupportWalletFragment) getSupportFragmentManager()
-                .findFragmentByTag(WALLET_FRAGMENT_ID);
-
-        if (walletFragment != null) {
-            return;
-        }
-
-        // Define fragment style
-        WalletFragmentStyle fragmentStyle = new WalletFragmentStyle()
-                .setBuyButtonText(BuyButtonText.BUY_NOW)
-                .setBuyButtonAppearance(BuyButtonAppearance.CLASSIC)
-                .setBuyButtonWidth(Dimension.MATCH_PARENT);
-
-        // Define fragment options
-        WalletFragmentOptions fragmentOptions = WalletFragmentOptions.newBuilder()
-                .setEnvironment(WalletConstants.ENVIRONMENT_SANDBOX)
-                .setFragmentStyle(fragmentStyle)
-                .setTheme(WalletConstants.THEME_HOLO_LIGHT)
-                .setMode(WalletFragmentMode.BUY_BUTTON)
-                .build();
-
-        // Create a new instance of WalletFragment
-        walletFragment = SupportWalletFragment.newInstance(fragmentOptions);
-
-        // Initialize the fragment with start params
-        // Note: If using the provided helper method Simplify.handleAndroidPayResult(int, int, Intent),
-        //       you MUST set the request code to Simplify.REQUEST_CODE_MASKED_WALLET
-        WalletFragmentInitParams.Builder startParamsBuilder = WalletFragmentInitParams.newBuilder()
-                .setMaskedWalletRequest(getMaskedWalletRequest())
-                .setMaskedWalletRequestCode(Simplify.REQUEST_CODE_MASKED_WALLET);
-
-        walletFragment.initialize(startParamsBuilder.build());
-
-        // Add Wallet fragment to the UI
-        getSupportFragmentManager().beginTransaction()
-                .replace(R.id.buy_button_holder, walletFragment, WALLET_FRAGMENT_ID)
-                .commit();
-    }
 
     private MaskedWalletRequest getMaskedWalletRequest() {
 
