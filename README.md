@@ -114,7 +114,16 @@ Within your context, you can initialize the view with a state change listener to
 Android Pay / Google Wallet
 ---------------------------
 
-To enable Android Pay / Google Wallet support within your app, refer to [https://developers.google.com/android-pay/android/tutorial](https://developers.google.com/android-pay/android/tutorial) for instructions on how to obtain a Google API key, create an instance of the GoogleAPIClient, incorporate the WalletFragment, and build the masked and full wallet requests.
+To enable Android Pay / Google Wallet support within your app, refer to [https://developers.google.com/android-pay/android/tutorial](https://developers.google.com/android-pay/android/tutorial). These instructions should guide you in how to:
+
+* Obtain a Google API key
+* Create an instance of the GoogleAPIClient
+* Incorporate the WalletFragment into your layout
+* Construct the masked and full wallet requests
+
+Since Android Pay integration is optional with the Simplify SDK, you must provide the appropriate play services dependency.
+
+    compile 'com.google.android.gms:play-services-wallet:7.8.0'
 
 The Simplify SDK offers an Android Pay lifecycle handler for added convenience. You may implement the provided Android Pay callback and use the result handler within your Activity. This alleviates the need to manually handle the Android Pay responses, and will delegate the important transaction steps to more easily readable callback methods.
 
@@ -196,6 +205,23 @@ Processing a Payment with a CardToken
 Regardless of which method you are using to collect card information, you should ultimately end up with a Simplify CardToken object. This one-time token should be sent back to your servers for processing. This is a highly recommended step to ensure your payment processing and your private API keys are kept secure.
 
 For an example on how to start processing payments from your server, refer to [https://github.com/simplifycom/simplify-php-server](https://github.com/simplifycom/simplify-php-server)
+
+Rx-enabled
+---------
+
+If being reactive is your thing, then we've got you covered. Include the RxAndroid library in your project.
+
+    compile 'io.reactivex:rxandroid:1.0.0'
+
+Then, utilize the Rx-enabled methods provided in the Simplify object.
+
+    Observable<CardToken> o = Simplify.createCardToken(card);
+    o.subscribe(new Action1<CardToken>() {
+        @Override
+        public void call(CardToken cardToken) {
+            // ...
+        }
+    })
 
 Support
 -------
