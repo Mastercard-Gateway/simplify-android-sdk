@@ -1,13 +1,8 @@
-Simplify Android SDK
-====================
+# Simplify Android SDK
 
-Our Android SDK allows you to easily integrate payments into your Android app. By creating a one-time use CardToken through our SDK, you avoid the risk of handling sensitive card details on your server. We offer the ability to collect card information in a couple of different ways:
+Our Android SDK allows you to easily integrate payments into your Android app. By creating a one-time use CardToken through our SDK, you avoid the risk of handling sensitive card details on your server.
 
-* Manual card entry (with or without built-in UI)
-* Android Pay / Google Wallet
-
-Import the Library
-------------------
+## Import the Library
 
 [![Download](https://api.bintray.com/packages/simplify/Android/simplify-sdk-android/images/download.svg)](https://bintray.com/simplify/Android/simplify-sdk-android/_latestVersion)
 
@@ -15,8 +10,7 @@ To import the Android SDK, include it as a dependency in your build.gradle file
 
     compile 'com.simplify:sdk-android:2.0.0'
 
-Initialize the SDK
-------------------
+## Initialize the SDK
 
 Before you can communicate with Simplify to tokenize a card, you must first initialize the SDK with your public API key. To retrieve a usable public API key, first log in to simplify.com and click on "API Keys" in the dropdown menu next to your name. From there, you can create a new public key specific to your app, or use an existing one. Be sure to use a "live" key for your production app. Card tokens created with a sandbox API key can not be used to process real payments!
 
@@ -29,8 +23,7 @@ To initialize the SDK, set the public key within your app's custom Application c
         Simplify.init("YOUR_PUBLIC_KEY");
     }
 
-Collect Card Information
-------------------------
+## Collect Card Information
 
 When originating a payment from your mobile app, you must first collect and tokenize card information. There are a few ways to collect card information using the Simplify SDK:
 
@@ -38,10 +31,9 @@ When originating a payment from your mobile app, you must first collect and toke
 * Retrieve a Card object from the provided CardEditor view
 * Android Pay / Google Wallet
 
-Manual Card / Custom UI
------------------------
+### Manual Card / Custom UI
 
-If you are using your own UI to collect card data from the user, you should build a Simplify Card object with this data. Refer to the CardToken API documentation for the minimum required fields when tokenizing a card.
+If you are using your own UI to collect card data from the user, you should build a Simplify Card object with this data. Refer to the [CardToken API docs](https://www.simplify.com/commerce/docs/apidoc/cardToken#create) for the minimum required fields when tokenizing a card.
 
     // create a new card object
     Card card = new Card()
@@ -64,8 +56,7 @@ If you are using your own UI to collect card data from the user, you should buil
         }
     });
 
-Using the CardEditor view
--------------------------
+### Using the CardEditor view
 
 If you would prefer to use our provided UI to collect card information, simply drop the CardEditor view into your layout.
 
@@ -79,7 +70,7 @@ If you would prefer to use our provided UI to collect card information, simply d
         auto:iconColor="@color/my_custom_icon_color"
         auto:enabled="true"/>
 
-Within your context, you can initialize the view with a state change listener to receive notification when the valid state of the view has changed after the user has entered details. You may use this to enable/disable a checkout button as demonstrated below.
+Within your context, you can register a state change listener to receive notifications when the valid state of the view has changed after the user has entered details. You may use this to enable/disable a checkout button as demonstrated below.
 
     // init card editor
     final CardEditor cardEditor = (CardEditor) findViewById(R.id.card_editor);
@@ -89,6 +80,7 @@ Within your context, you can initialize the view with a state change listener to
     cardEditor.addOnStateChangeListener(new CardEditor.OnStateChangedListener() {
         @Override
         public void onStateChange(CardEditor cardEditor) {
+            // true: card editor contains valid and complete card information
             checkoutButton.setEnabled(cardEditor.isValid());
         }
     });
@@ -97,6 +89,7 @@ Within your context, you can initialize the view with a state change listener to
     checkoutButton.setOnClickListener(new OnClickListener() {
         @Override
         public void onClick(View v) {
+            // create a card token
             Simplify.createCardToken(cardEditor.getCard(), new CardToken.Callback() {
                 @Override
                 public void onSuccess(CardToken cardToken) {
@@ -111,8 +104,7 @@ Within your context, you can initialize the view with a state change listener to
         }
     });
 
-Android Pay / Google Wallet
----------------------------
+### Android Pay / Google Wallet
 
 To enable Android Pay / Google Wallet support within your app, refer to [https://developers.google.com/android-pay/android/tutorial](https://developers.google.com/android-pay/android/tutorial). These instructions should guide you in how to:
 
@@ -199,15 +191,13 @@ Once you have received your FullWallet, you may use it to create a CardToken wit
         }
     });
 
-Processing a Payment with a CardToken
--------------------------------------
+## Processing a Payment with a CardToken
 
 Regardless of which method you are using to collect card information, you should ultimately end up with a Simplify CardToken object. This one-time token should be sent back to your servers for processing. This is a highly recommended step to ensure your payment processing and your private API keys are kept secure.
 
 For an example on how to start processing payments from your server, refer to [https://github.com/simplifycom/simplify-php-server](https://github.com/simplifycom/simplify-php-server)
 
-Rx-enabled
----------
+## Rx-enabled
 
 If being reactive is your thing, then we've got you covered. Include the RxAndroid library in your project.
 
@@ -223,8 +213,7 @@ Then, utilize the Rx-enabled methods provided in the Simplify object.
         }
     })
 
-Support
--------
+## Support
 
 For more information, visit [https://www.simplify.com/commerce/docs/sdk/android](https://www.simplify.com/commerce/docs/sdk/android)
 
