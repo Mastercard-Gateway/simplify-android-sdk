@@ -8,7 +8,7 @@ Our Android SDK allows you to easily integrate payments into your Android app. B
 
 To import the Android SDK, include it as a dependency in your build.gradle file
 
-    compile 'com.simplify:sdk-android:2.0.0'
+    compile 'com.simplify:simplify-android:2.0.0'
 
 ## Initialize the SDK
 
@@ -33,7 +33,7 @@ When originating a payment from your mobile app, you must first collect and toke
 
 ### Manual Card / Custom UI
 
-If you are using your own UI to collect card data from the user, you should build a Simplify Card object with this data. Refer to the [CardToken API docs](https://www.simplify.com/commerce/docs/apidoc/cardToken#create) for the minimum required fields when tokenizing a card.
+If you are using your own UI to collect card data from the user, you should build a Simplify Card object with this data. Refer to the [CardToken API docs](https://www.simplify.com/commerce/docs/apidoc/cardToken#create) for the minimum required fields to tokenize a card.
 
     // create a new card object
     Card card = new Card()
@@ -117,7 +117,7 @@ Since Android Pay integration is optional with the Simplify SDK, you must provid
 
     compile 'com.google.android.gms:play-services-wallet:7.8.0'
 
-The Simplify SDK offers an Android Pay lifecycle handler for added convenience. You may implement the provided Android Pay callback and use the result handler within your Activity. This alleviates the need to manually handle the Android Pay responses, and will delegate the important transaction steps to more easily readable callback methods.
+The Simplify SDK offers an Android Pay lifecycle handler for added convenience. You may implement the provided Android Pay callback and use the result handler within your Activity. This alleviates the need to manually handle the Android Pay activity results, and will delegate the important transaction steps to callback methods.
 
     public class YourActivity extends Activity implements Simplify.AndroidPayCallback {
 
@@ -199,9 +199,7 @@ For an example on how to start processing payments from your server, refer to [h
 
 ## Rx-enabled
 
-If being reactive is your thing, then we've got you covered. Include the RxAndroid library in your project.
-
-    compile 'io.reactivex:rxandroid:1.0.0'
+If being reactive is your thing, then we've got you covered. Include the [RxAndroid](https://github.com/ReactiveX/RxAndroid) library in your project.
 
 Then, utilize the Rx-enabled methods provided in the Simplify object.
 
