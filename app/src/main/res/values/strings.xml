@@ -1,4 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">SDK Android Sample</string>
-    <string name="reset">Reset</string>
+    <string name="app_name">Simplify Android SDK</string>
+    <string name="pay_with_simplify">Pay with Simplify</string>
+    <string name="confirm">Confirm</string>
 </resources>
