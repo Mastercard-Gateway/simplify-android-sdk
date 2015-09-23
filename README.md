@@ -4,7 +4,7 @@ Our Android SDK allows you to easily integrate payments into your Android app. B
 
 ## Import the Library
 
-[![Maven](https://img.shields.io/maven-central/v/com.simplify/simplify-android.svg)](http://search.maven.org/#search%7Cga%7C1%7Csimplify-android)
+[![simplify-android](https://img.shields.io/maven-central/v/com.simplify/simplify-android.svg?label=simplify-android)](http://search.maven.org/#search%7Cga%7C1%7Csimplify-android)
 
 To import the Android SDK, include it as a dependency in your build.gradle file
 
