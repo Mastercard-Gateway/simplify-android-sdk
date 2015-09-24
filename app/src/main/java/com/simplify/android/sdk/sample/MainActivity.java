@@ -169,6 +169,7 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
 
             @Override
             public void onError(Throwable throwable) {
+                throwable.printStackTrace();
                 mPayButton.setEnabled(true);
             }
         });
