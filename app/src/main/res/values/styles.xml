@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="AppTheme" parent="Theme.AppCompat.Light">
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="colorAccent">@color/accent</item>
         <item name="android:editTextStyle">@style/EditText</item>
         <item name="alertDialogTheme">@style/AlertDialogTheme</item>
@@ -14,6 +14,13 @@
 
     <style name="EditText" parent="Widget.AppCompat.EditText">
         <item name="android:minHeight">50dp</item>
+        <item name="android:textAppearance">@style/TextAppearance.AppCompat.Small</item>
+    </style>
+
+    <style name="Toolbar" parent="Theme.AppCompat">
+        <item name="android:textColorPrimary">@android:color/white</item>
+        <item name="android:textColorSecondary">@android:color/white</item>
+        <item name="android:background">#ff6600</item>
     </style>
 
 </resources>
