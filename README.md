@@ -58,15 +58,10 @@ If you are using your own UI to collect card data from the user, you should buil
 
 If you would prefer to use our provided UI to collect card information, simply drop the CardEditor view into your layout.
 
-    <!-- Add xmlns:auto="http://schemas.android.com/apk/res-auto" -->
-    <!-- to the root element of your layout to use custom attributes -->
-
     <com.simplify.android.sdk.CardEditor
         android:id="@+id/card_editor"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        auto:iconColor="@color/my_custom_icon_color"
-        auto:enabled="true"/>
+        android:layout_height="wrap_content"/>
 
 Within your context, you can register a state change listener to receive notifications when the valid state of the view has changed after the user has entered details. You may use this to enable/disable a checkout button as demonstrated below.
 
@@ -102,9 +97,45 @@ Within your context, you can register a state change listener to receive notific
         }
     });
 
+By default, the CardEditor view will inherit the styles of the theme you apply to it's context. However, you may change the appearance in a couple of ways, as shown below.
+
+Apply a new theme for EditText and/or AlertDialog (used to choose expiration date):
+
+    <style name="AppTheme" parent="Theme.AppCompat.Light">
+        <item name="colorAccent">@color/accent</item> <!-- sets the divider color on the number pickers in the exipiration date dialog -->
+        <item name="android:editTextStyle">@style/EditText</item>
+        <item name="alertDialogTheme">@style/AlertDialogTheme</item>
+    </style>
+    
+    <style name="AlertDialogTheme" parent="Theme.AppCompat.Light.Dialog.Alert">
+        <item name="colorAccent">@color/accent</item> <!-- sets the action button text color -->
+        <item name="android:textColorPrimary">#000000</item> <!-- sets the title text color -->
+    </style>
+    
+    <style name="EditText" parent="Widget.AppCompat.EditText">
+        <item name="android:minHeight">50dp</item>
+    </style>
+
+Set custom attributes on the CardEditor view in your layout:
+
+    <!-- Add xmlns:auto="http://schemas.android.com/apk/res-auto" -->
+    <!-- to the root element of your layout to use custom attributes -->
+    
+    <com.simplify.android.sdk.CardEditor
+            android:id="@+id/card_editor"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            auto:iconColor="@color/my_custom_icon_color"
+            auto:enabled="true"/>
+
+Or in code:
+
+    cardEditor.setIconColor(getColor(R.color.my_custom_icon_color));
+    cardEditor.setEnabled(true);
+
 ### Android Pay / Google Wallet
 
-To enable Android Pay / Google Wallet support within your app, refer to [https://developers.google.com/android-pay/android/tutorial](https://developers.google.com/android-pay/android/tutorial). These instructions should guide you in how to:
+To enable Android Pay / Google Wallet support within your app, refer to the [Android Pay API tutorial](https://developers.google.com/android-pay/android/tutorial). These instructions should guide you in how to:
 
 * Obtain a Google API key
 * Create an instance of the GoogleAPIClient
