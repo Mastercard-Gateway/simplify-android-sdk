@@ -2,9 +2,7 @@
 
 Our Android SDK allows you to easily integrate payments into your Android app. By creating a one-time use CardToken through our SDK, you avoid the risk of handling sensitive card details on your server.
 
-## Import the Library
-
-[![simplify-android](https://img.shields.io/maven-central/v/com.simplify/simplify-android.svg?label=simplify-android)](http://search.maven.org/#search%7Cga%7C1%7Csimplify-android)
+## Import the Library [![maven-central](https://img.shields.io/maven-central/v/com.simplify/simplify-android.svg)](http://search.maven.org/#search%7Cga%7C1%7Csimplify-android)
 
 To import the Android SDK, include it as a dependency in your build.gradle file
 
@@ -56,7 +54,7 @@ If you are using your own UI to collect card data from the user, you should buil
         }
     });
 
-### Using the CardEditor view
+### Using the CardEditor View
 
 If you would prefer to use our provided UI to collect card information, simply drop the CardEditor view into your layout.
 
@@ -210,6 +208,12 @@ Then, utilize the Rx-enabled methods provided in the Simplify object.
             // ...
         }
     })
+
+## Security
+
+As mentioned above, using a tokenized card to create a Payment should happen on your secure server, and **not** from within your app. This added measure alleviates your need to distribute private API keys within your app, as well as the burden of handling sensitive card information on your servers.
+
+For added protection (and peace of mind), all traffic between your app and Simplify is secured using [TLS 1.2](https://en.wikipedia.org/wiki/Transport_Layer_Security#TLS_1.2) and [certificate pinning](https://en.wikipedia.org/wiki/HTTP_Public_Key_Pinning).
 
 ## Support
 
