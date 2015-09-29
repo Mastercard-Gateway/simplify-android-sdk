@@ -21,68 +21,12 @@
 
     </android.support.design.widget.AppBarLayout>
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@android:color/white"
-        android:gravity="center"
-        android:paddingBottom="10dp"
-        android:paddingLeft="15dp"
-        android:paddingRight="15dp"
-        android:paddingTop="10dp"
-        android:layout_marginBottom="15dp">
+    <include layout="@layout/cart"
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:layout_marginBottom="15dp"/>
 
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="15dp"
-            android:layout_marginRight="15dp"
-            android:src="@drawable/coffee_image"/>
-
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Iced Coffee"
-                android:textSize="21sp"/>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="16oz and overpriced"
-                android:textSize="12sp"/>
-
-        </LinearLayout>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="$15"
-            android:textSize="24sp"/>
-
-    </LinearLayout>
-
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@android:color/white"
-        android:paddingTop="10dp"
-        android:paddingBottom="10dp"
-        android:paddingLeft="15dp"
-        android:paddingRight="15dp"
-        android:layout_marginBottom="15dp">
-
-        <FrameLayout
-            android:id="@+id/buy_button_holder"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
-
-    </RelativeLayout>
+    <include layout="@layout/buy_button"/>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -97,7 +41,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="15dp"
             android:textSize="20sp"
-            android:text="Pay with a card"/>
+            android:text="@string/pay_with_a_card"/>
 
         <com.simplify.android.sdk.CardEditor
             android:id="@+id/card_editor"
@@ -112,7 +56,6 @@
         android:id="@+id/btnPay"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/pay_with_simplify"
-        android:background="@null"/>
+        android:text="@string/pay_with_simplify"/>
 
 </LinearLayout>

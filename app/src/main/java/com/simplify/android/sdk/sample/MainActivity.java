@@ -164,11 +164,13 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
         Simplify.createCardToken(mCardEditor.getCard(), new CardToken.Callback() {
             @Override
             public void onSuccess(CardToken cardToken) {
+                // TODO go to success screen
                 mPayButton.setEnabled(true);
             }
 
             @Override
             public void onError(Throwable throwable) {
+                // TODO go to error screen
                 throwable.printStackTrace();
                 mPayButton.setEnabled(true);
             }

@@ -6,6 +6,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -31,6 +32,7 @@ public class ConfirmationActivity extends AppCompatActivity implements
     static final String TAG = ConfirmationActivity.class.getSimpleName();
     static final String CURRENCY_CODE_USD = "USD";
 
+    Button mPayButton;
     GoogleApiClient mGoogleApiClient;
     MaskedWallet mMaskedWallet;
 
@@ -45,7 +47,8 @@ public class ConfirmationActivity extends AppCompatActivity implements
 
         mMaskedWallet = getIntent().getParcelableExtra(WalletConstants.EXTRA_MASKED_WALLET);
 
-        showConfirmationScreen();
+
+        init();
     }
 
     @Override
@@ -66,14 +69,22 @@ public class ConfirmationActivity extends AppCompatActivity implements
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (Simplify.handleAndroidPayResult(requestCode,resultCode, data)) {
+        if (Simplify.handleAndroidPayResult(requestCode, resultCode, data)) {
             return;
         }
 
         super.onActivityResult(requestCode, resultCode, data);
     }
 
-    void showConfirmationScreen() {
+    void init() {
+
+        mPayButton = (Button) findViewById(R.id.btn_pay);
+        mPayButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                confirmPurchase();
+            }
+        });
 
         //fragment style for confirmation screen
         WalletFragmentStyle walletFragmentStyle = new WalletFragmentStyle()
@@ -119,13 +130,16 @@ public class ConfirmationActivity extends AppCompatActivity implements
     }
 
     @Override
-    public void onConnected(Bundle bundle) {}
+    public void onConnected(Bundle bundle) {
+    }
 
     @Override
-    public void onConnectionSuspended(int i) {}
+    public void onConnectionSuspended(int i) {
+    }
 
     @Override
-    public void onConnectionFailed(ConnectionResult connectionResult) {}
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+    }
 
 
     @Override
@@ -135,21 +149,20 @@ public class ConfirmationActivity extends AppCompatActivity implements
 
     @Override
     public void onReceivedFullWallet(FullWallet fullWallet) {
-        // Use fullwallet object to create token
-        if(fullWallet != null) {
+        // create simplify token with wallet
+        Simplify.createAndroidPayCardToken(fullWallet, new CardToken.Callback() {
+            @Override
+            public void onSuccess(CardToken cardToken) {
+                // TODO go to success screen
+                Log.i(TAG, "Card token created");
+            }
 
-            Simplify.createAndroidPayCardToken(fullWallet, new CardToken.Callback() {
-                @Override
-                public void onSuccess(CardToken cardToken) {
-                    Log.i(TAG, "Card token created");
-                }
-
-                @Override
-                public void onError(Throwable throwable) {
-                    Log.e(TAG, "Error Creating Token: " + throwable.getMessage());
-                }
-            });
-        }
+            @Override
+            public void onError(Throwable throwable) {
+                // TODO go to error screen
+                Log.e(TAG, "Error Creating Token: " + throwable.getMessage());
+            }
+        });
     }
 
     @Override
@@ -162,7 +175,7 @@ public class ConfirmationActivity extends AppCompatActivity implements
 
     }
 
-    public void onPurchaseConfirm(View view) {
+    public void confirmPurchase() {
 
         if (mMaskedWallet == null) {
             Toast.makeText(this, "No masked wallet, can't confirm", Toast.LENGTH_SHORT).show();

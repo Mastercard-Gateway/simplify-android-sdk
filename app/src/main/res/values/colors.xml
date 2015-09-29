@@ -4,4 +4,6 @@
     <color name="accent">#F16E24</color>
     <color name="icon">#666666</color>
 
+    <color name="button_bg_disabled">#cbcbcc</color>
+
 </resources>
