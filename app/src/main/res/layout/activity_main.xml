@@ -1,39 +1,61 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:auto="http://schemas.android.com/apk/res-auto"
               xmlns:tools="http://schemas.android.com/tools"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
-              xmlns:auto="http://schemas.android.com/apk/res-auto"
+              android:background="#efefef"
               android:orientation="vertical"
               tools:context=".MainActivity">
 
-    <RelativeLayout
+    <android.support.design.widget.AppBarLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="#dddddd"
-        android:padding="15dp">
+        android:layout_height="wrap_content">
 
-        <FrameLayout
-            android:id="@+id/buy_button_holder"
+        <android.support.v7.widget.Toolbar
+            android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content"
+            auto:theme="@style/Toolbar"
+            auto:title="Checkout"/>
 
-    </RelativeLayout>
+    </android.support.design.widget.AppBarLayout>
 
-    <com.simplify.android.sdk.CardEditor
-        android:id="@+id/card_editor"
+    <include layout="@layout/cart"
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:layout_marginBottom="15dp"/>
+
+    <include layout="@layout/buy_button"/>
+
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="15dp"
-        auto:iconColor="@color/icon"
-        auto:enabled="true"/>
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:padding="15dp"
+        android:background="@android:color/white">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="15dp"
+            android:textSize="20sp"
+            android:text="@string/pay_with_a_card"/>
+
+        <com.simplify.android.sdk.CardEditor
+            android:id="@+id/card_editor"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            auto:enabled="true"
+            auto:iconColor="@color/icon"/>
+
+    </LinearLayout>
 
     <Button
         android:id="@+id/btnPay"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="15dp"
-        android:layout_marginRight="15dp"
         android:text="@string/pay_with_simplify"/>
 
 </LinearLayout>
