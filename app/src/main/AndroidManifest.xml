@@ -12,10 +12,7 @@
         <!-- Add your Simplify public key here -->
         <meta-data
             android:name="com.simplify.android.sdk.apikey"
-            android:value="sbpb_OTQ5YjczMTQtMmQzNy00ZGIwLWExZDgtMzY0ZGQ5ODcxNjNh" />
-        <meta-data
-            android:name="com.google.android.gms.version"
-            android:value="@integer/google_play_services_version" />
+            android:value="YOUR_PUBLIC_KEY" />
 
         <!-- Enables the Android Pay API -->
         <meta-data
@@ -31,9 +28,13 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ConfirmationActivity" />
-        <activity android:name=".ThankYouActivity" >
-        </activity>
+
+        <activity android:name=".ConfirmationActivity"
+            android:screenOrientation="portrait"/>
+
+        <activity android:name=".ThankYouActivity"
+            android:screenOrientation="portrait"/>
+
     </application>
 
 </manifest>
