@@ -3,25 +3,34 @@ package com.simplify.android.sdk.sample;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
-import android.widget.TextView;
+import android.widget.ViewFlipper;
 
 public class ThankYouActivity extends AppCompatActivity {
+
+    public static final String EXTRA_PAGE = ThankYouActivity.class.getName() + ".PAGE";
+
+    public static final int PAGE_SUCCESS = 0;
+    public static final int PAGE_FAIL = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_thankyou);
 
-        TextView tv = (TextView) findViewById(R.id.text_shop_more);
-        tv.setOnClickListener(new View.OnClickListener() {
+        int page = getIntent().getIntExtra(EXTRA_PAGE, PAGE_SUCCESS);
+        ((ViewFlipper) findViewById(R.id.flipper_thankyou)).setDisplayedChild(page);
+
+        findViewById(R.id.text_shop_more).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                shopMore();
+                finish();
             }
         });
-    }
-
-    void shopMore() {
-
+        findViewById(R.id.text_try_again).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
     }
 }

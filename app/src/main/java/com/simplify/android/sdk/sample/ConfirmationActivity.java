@@ -153,14 +153,20 @@ public class ConfirmationActivity extends AppCompatActivity implements
         Simplify.createAndroidPayCardToken(fullWallet, new CardToken.Callback() {
             @Override
             public void onSuccess(CardToken cardToken) {
-                // TODO go to success screen
-                Log.i(TAG, "Card token created");
+                mPayButton.setEnabled(true);
+
+                Intent i = new Intent(ConfirmationActivity.this, ThankYouActivity.class);
+                i.putExtra(ThankYouActivity.EXTRA_PAGE, ThankYouActivity.PAGE_SUCCESS);
+                startActivity(i);
             }
 
             @Override
             public void onError(Throwable throwable) {
-                // TODO go to error screen
-                Log.e(TAG, "Error Creating Token: " + throwable.getMessage());
+                mPayButton.setEnabled(true);
+
+                Intent i = new Intent(ConfirmationActivity.this, ThankYouActivity.class);
+                i.putExtra(ThankYouActivity.EXTRA_PAGE, ThankYouActivity.PAGE_FAIL);
+                startActivity(i);
             }
         });
     }
@@ -172,10 +178,12 @@ public class ConfirmationActivity extends AppCompatActivity implements
 
     @Override
     public void onAndroidPayError(int errorCode) {
-
+        Log.i(TAG, "android pay error " + errorCode);
     }
 
     public void confirmPurchase() {
+
+        mPayButton.setEnabled(false);
 
         if (mMaskedWallet == null) {
             Toast.makeText(this, "No masked wallet, can't confirm", Toast.LENGTH_SHORT).show();

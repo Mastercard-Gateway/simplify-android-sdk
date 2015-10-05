@@ -21,6 +21,7 @@ import com.google.android.gms.wallet.fragment.WalletFragmentInitParams;
 import com.google.android.gms.wallet.fragment.WalletFragmentMode;
 import com.google.android.gms.wallet.fragment.WalletFragmentOptions;
 import com.google.android.gms.wallet.fragment.WalletFragmentStyle;
+import com.simplify.android.sdk.Card;
 import com.simplify.android.sdk.CardEditor;
 import com.simplify.android.sdk.CardToken;
 import com.simplify.android.sdk.Simplify;
@@ -161,18 +162,27 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
     private void requestCardToken() {
         mPayButton.setEnabled(false);
 
-        Simplify.createCardToken(mCardEditor.getCard(), new CardToken.Callback() {
+        Card card = mCardEditor.getCard();
+
+        Simplify.createCardToken(card, new CardToken.Callback() {
             @Override
             public void onSuccess(CardToken cardToken) {
-                // TODO go to success screen
                 mPayButton.setEnabled(true);
+
+                Intent i = new Intent(MainActivity.this, ThankYouActivity.class);
+                i.putExtra(ThankYouActivity.EXTRA_PAGE, ThankYouActivity.PAGE_SUCCESS);
+                startActivity(i);
             }
 
             @Override
             public void onError(Throwable throwable) {
-                // TODO go to error screen
                 throwable.printStackTrace();
+
                 mPayButton.setEnabled(true);
+
+                Intent i = new Intent(MainActivity.this, ThankYouActivity.class);
+                i.putExtra(ThankYouActivity.EXTRA_PAGE, ThankYouActivity.PAGE_FAIL);
+                startActivity(i);
             }
         });
     }
@@ -181,19 +191,19 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
     private MaskedWalletRequest getMaskedWalletRequest() {
 
         return MaskedWalletRequest.newBuilder()
-                .setMerchantName("MasterCard labs")
+                .setMerchantName("Overpriced Coffee Shop")
                 .setPhoneNumberRequired(true)
                 .setShippingAddressRequired(true)
                 .setCurrencyCode(CURRENCY_CODE_USD)
                 .setCart(Cart.newBuilder()
                         .setCurrencyCode(CURRENCY_CODE_USD)
-                        .setTotalPrice("5.00")
+                        .setTotalPrice("15.00")
                         .addLineItem(LineItem.newBuilder()
                                 .setCurrencyCode(CURRENCY_CODE_USD)
-                                .setDescription("Mc labs")
+                                .setDescription("Iced Coffee")
                                 .setQuantity("1")
-                                .setUnitPrice("5.00")
-                                .setTotalPrice("5.00")
+                                .setUnitPrice("15.00")
+                                .setTotalPrice("15.00")
                                 .build())
                         .build())
                 .setEstimatedTotalPrice("5.00")

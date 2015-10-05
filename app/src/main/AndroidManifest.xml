@@ -12,7 +12,7 @@
         <!-- Add your Simplify public key here -->
         <meta-data
             android:name="com.simplify.android.sdk.apikey"
-            android:value="YOUR_PUBLIC_KEY" />
+            android:value="sbpb_OTQ5YjczMTQtMmQzNy00ZGIwLWExZDgtMzY0ZGQ5ODcxNjNh" />
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
