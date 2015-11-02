@@ -8,7 +8,7 @@ To import the Android SDK, include it as a dependency in your build.gradle file
 
     compile 'com.simplify:simplify-android:2.0.3'
 
-## Integrate with you App
+## Integrate with your App
 
 Consult the [Simplify Android SDK Tutorial](https://github.com/simplifycom/simplify-android-sample/wiki/Simplify-Android-SDK-Tutorial) page for instructions on how to use the SDK within your app. 
 
