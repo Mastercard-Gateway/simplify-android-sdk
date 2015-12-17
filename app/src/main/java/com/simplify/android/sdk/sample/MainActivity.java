@@ -2,16 +2,22 @@ package com.simplify.android.sdk.sample;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 
+import com.google.android.gms.common.api.BooleanResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.wallet.Cart;
 import com.google.android.gms.wallet.FullWallet;
 import com.google.android.gms.wallet.LineItem;
 import com.google.android.gms.wallet.MaskedWallet;
 import com.google.android.gms.wallet.MaskedWalletRequest;
+import com.google.android.gms.wallet.Wallet;
 import com.google.android.gms.wallet.WalletConstants;
 import com.google.android.gms.wallet.fragment.BuyButtonAppearance;
 import com.google.android.gms.wallet.fragment.BuyButtonText;
@@ -26,14 +32,14 @@ import com.simplify.android.sdk.CardEditor;
 import com.simplify.android.sdk.CardToken;
 import com.simplify.android.sdk.Simplify;
 
-public class MainActivity extends AppCompatActivity implements Simplify.AndroidPayCallback {
+public class MainActivity extends AppCompatActivity implements Simplify.AndroidPayCallback, GoogleApiClient.ConnectionCallbacks {
 
     private static final String CURRENCY_CODE_USD = "USD";
     private static final String WALLET_FRAGMENT_ID = "wallet_fragment";
 
     private CardEditor mCardEditor;
     private Button mPayButton;
-
+    private GoogleApiClient mGoogleApiClient;
 
     //---------------------------------------------
     // Life-Cycle
@@ -108,6 +114,8 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
 
     private void init() {
 
+        mGoogleApiClient = getGoogleApiClient();
+
         mPayButton = (Button) findViewById(R.id.btnPay);
         mPayButton.setEnabled(false);
         mPayButton.setOnClickListener(new OnClickListener() {
@@ -124,6 +132,35 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
                 mPayButton.setEnabled(cardEditor.isValid());
             }
         });
+
+        //initializeAndroidPay();
+        showGoogleBuyButton();
+    }
+
+    /*private void initializeAndroidPay() {
+
+        Wallet.Payments.isReadyToPay(mGoogleApiClient).setResultCallback(
+                new ResultCallback<BooleanResult>() {
+                    @Override
+                    public void onResult(@NonNull BooleanResult booleanResult) {
+
+                        if (booleanResult.getStatus().isSuccess()) {
+                            if (booleanResult.getValue()) {
+                                showGoogleBuyButton();
+                            } else {
+                                hideGoogleBuyButton();
+                            }
+                        } else {
+                            // Error making isReadyToPay call
+                            Log.e(TAG, "isReadyToPay:" + booleanResult.getStatus());
+                        }
+                    }
+                });
+    }*/
+
+    private void showGoogleBuyButton() {
+
+        //findViewById(R.id.buy_button_layout).setVisibility(View.VISIBLE);
 
         // Define fragment style
         WalletFragmentStyle fragmentStyle = new WalletFragmentStyle()
@@ -156,10 +193,27 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
         getFragmentManager().beginTransaction()
                 .replace(R.id.buy_button_holder, walletFragment, WALLET_FRAGMENT_ID)
                 .commit();
+
     }
 
+    private void hideGoogleBuyButton() {
+
+        //findViewById(R.id.buy_button_layout).setVisibility(View.GONE);
+    }
+
+    GoogleApiClient getGoogleApiClient() {
+
+        return new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addApi(Wallet.API, new Wallet.WalletOptions.Builder()
+                        .setEnvironment(WalletConstants.ENVIRONMENT_SANDBOX)
+                        .setTheme(WalletConstants.THEME_HOLO_LIGHT)
+                        .build())
+                .build();
+    }
 
     private void requestCardToken() {
+
         mPayButton.setEnabled(false);
 
         Card card = mCardEditor.getCard();
@@ -208,5 +262,15 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
                         .build())
                 .setEstimatedTotalPrice("5.00")
                 .build();
+    }
+
+    @Override
+    public void onConnected(Bundle bundle) {
+
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
     }
 }
