@@ -26,8 +26,7 @@ import com.google.android.gms.wallet.fragment.WalletFragmentStyle;
 import com.simplify.android.sdk.CardToken;
 import com.simplify.android.sdk.Simplify;
 
-public class ConfirmationActivity extends AppCompatActivity implements
-        GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, Simplify.AndroidPayCallback {
+public class ConfirmationActivity extends AppCompatActivity implements Simplify.AndroidPayCallback {
 
     static final String TAG = ConfirmationActivity.class.getSimpleName();
     static final String CURRENCY_CODE_USD = "USD";
@@ -43,7 +42,7 @@ public class ConfirmationActivity extends AppCompatActivity implements
         setContentView(R.layout.activity_confirm);
 
         //google api client required to request full wallet
-        mGoogleApiClient = getGoogleApiClient();
+        mGoogleApiClient = ((SimplifyApplication)getApplication()).getGoogleApiClient(this);
 
         mMaskedWallet = getIntent().getParcelableExtra(WalletConstants.EXTRA_MASKED_WALLET);
 
@@ -116,31 +115,6 @@ public class ConfirmationActivity extends AppCompatActivity implements
                 .replace(R.id.confirm_wallet_holder, walletFragment)
                 .commit();
     }
-
-    GoogleApiClient getGoogleApiClient() {
-
-        return new GoogleApiClient.Builder(this)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .addApi(Wallet.API, new Wallet.WalletOptions.Builder()
-                        .setEnvironment(WalletConstants.ENVIRONMENT_SANDBOX)
-                        .setTheme(WalletConstants.THEME_HOLO_LIGHT)
-                        .build())
-                .build();
-    }
-
-    @Override
-    public void onConnected(Bundle bundle) {
-    }
-
-    @Override
-    public void onConnectionSuspended(int i) {
-    }
-
-    @Override
-    public void onConnectionFailed(ConnectionResult connectionResult) {
-    }
-
 
     @Override
     public void onReceivedMaskedWallet(MaskedWallet maskedWallet) {

@@ -1,9 +1,14 @@
 package com.simplify.android.sdk.sample;
 
 import android.app.Application;
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.wallet.Wallet;
+import com.google.android.gms.wallet.WalletConstants;
 import com.simplify.android.sdk.Simplify;
 
 public class SimplifyApplication extends Application {
@@ -21,6 +26,39 @@ public class SimplifyApplication extends Application {
             }
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    public GoogleApiClient getGoogleApiClient(Context context) {
+
+        ConnectedCallbacks callbacks = new ConnectedCallbacks();
+
+        return new GoogleApiClient.Builder(context)
+                .addConnectionCallbacks(callbacks)
+                .addOnConnectionFailedListener(callbacks)
+                .addApi(Wallet.API, new Wallet.WalletOptions.Builder()
+                        .setEnvironment(WalletConstants.ENVIRONMENT_SANDBOX)
+                        .setTheme(WalletConstants.THEME_HOLO_LIGHT)
+                        .build())
+                .build();
+
+    }
+
+    static class ConnectedCallbacks implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+
+        @Override
+        public void onConnected(Bundle bundle) {
+
+        }
+
+        @Override
+        public void onConnectionSuspended(int i) {
+
+        }
+
+        @Override
+        public void onConnectionFailed(ConnectionResult connectionResult) {
+
         }
     }
 }
