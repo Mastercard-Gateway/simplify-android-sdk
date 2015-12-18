@@ -1,5 +1,6 @@
 package com.simplify.android.sdk.sample;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -9,6 +10,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 
+import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.BooleanResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
@@ -34,6 +36,7 @@ import com.simplify.android.sdk.Simplify;
 
 public class MainActivity extends AppCompatActivity implements Simplify.AndroidPayCallback {
 
+    private static final String TAG = MainActivity.class.getSimpleName();
     private static final String CURRENCY_CODE_USD = "USD";
     private static final String WALLET_FRAGMENT_ID = "wallet_fragment";
 
@@ -114,7 +117,7 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
 
     private void init() {
 
-        mGoogleApiClient = ((SimplifyApplication)getApplication()).getGoogleApiClient(this);
+        mGoogleApiClient = getGoogleApiClient();
 
         mPayButton = (Button) findViewById(R.id.btnPay);
         mPayButton.setEnabled(false);
@@ -137,13 +140,14 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
         showGoogleBuyButton();
     }
 
-    /*private void initializeAndroidPay() {
+    private void initializeAndroidPay() {
 
+        System.out.println("initializeAndroidPay");
         Wallet.Payments.isReadyToPay(mGoogleApiClient).setResultCallback(
                 new ResultCallback<BooleanResult>() {
                     @Override
                     public void onResult(@NonNull BooleanResult booleanResult) {
-
+                        System.out.println("booleanResult.getValue() : + booleanResult.getValue()");
                         if (booleanResult.getStatus().isSuccess()) {
                             if (booleanResult.getValue()) {
                                 showGoogleBuyButton();
@@ -156,11 +160,12 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
                         }
                     }
                 });
-    }*/
+    }
 
     private void showGoogleBuyButton() {
 
-        //findViewById(R.id.buy_button_layout).setVisibility(View.VISIBLE);
+        System.out.println("showGoogleBuyButton");
+        findViewById(R.id.buy_button_layout).setVisibility(View.VISIBLE);
 
         // Define fragment style
         WalletFragmentStyle fragmentStyle = new WalletFragmentStyle()
@@ -197,7 +202,7 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
     }
 
     private void hideGoogleBuyButton() {
-
+        System.out.println("hideGoogleBuyButton");
         findViewById(R.id.buy_button_layout).setVisibility(View.GONE);
     }
 
@@ -253,4 +258,34 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
                 .build();
     }
 
+    public GoogleApiClient getGoogleApiClient() {
+
+        ConnectedCallbacks callbacks = new ConnectedCallbacks();
+
+        return new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(callbacks)
+                .addOnConnectionFailedListener(callbacks)
+                .addApi(Wallet.API, new Wallet.WalletOptions.Builder()
+                        .build())
+                .build();
+
+    }
+
+    static class ConnectedCallbacks implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+
+        @Override
+        public void onConnected(Bundle bundle) {
+
+        }
+
+        @Override
+        public void onConnectionSuspended(int i) {
+
+        }
+
+        @Override
+        public void onConnectionFailed(ConnectionResult connectionResult) {
+
+        }
+    }
 }
