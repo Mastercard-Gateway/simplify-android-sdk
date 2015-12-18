@@ -117,7 +117,7 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
 
     private void init() {
 
-        mGoogleApiClient = getGoogleApiClient();
+        mGoogleApiClient = ((SimplifyApplication)getApplication()).getGoogleApiClient(this);
 
         mPayButton = (Button) findViewById(R.id.btnPay);
         mPayButton.setEnabled(false);
@@ -258,34 +258,4 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
                 .build();
     }
 
-    public GoogleApiClient getGoogleApiClient() {
-
-        ConnectedCallbacks callbacks = new ConnectedCallbacks();
-
-        return new GoogleApiClient.Builder(this)
-                .addConnectionCallbacks(callbacks)
-                .addOnConnectionFailedListener(callbacks)
-                .addApi(Wallet.API, new Wallet.WalletOptions.Builder()
-                        .build())
-                .build();
-
-    }
-
-    static class ConnectedCallbacks implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
-
-        @Override
-        public void onConnected(Bundle bundle) {
-
-        }
-
-        @Override
-        public void onConnectionSuspended(int i) {
-
-        }
-
-        @Override
-        public void onConnectionFailed(ConnectionResult connectionResult) {
-
-        }
-    }
 }
