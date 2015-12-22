@@ -19,6 +19,8 @@ import com.google.android.gms.wallet.FullWallet;
 import com.google.android.gms.wallet.LineItem;
 import com.google.android.gms.wallet.MaskedWallet;
 import com.google.android.gms.wallet.MaskedWalletRequest;
+import com.google.android.gms.wallet.PaymentMethodTokenizationParameters;
+import com.google.android.gms.wallet.PaymentMethodTokenizationType;
 import com.google.android.gms.wallet.Wallet;
 import com.google.android.gms.wallet.WalletConstants;
 import com.google.android.gms.wallet.fragment.BuyButtonAppearance;
@@ -74,6 +76,14 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+        System.out.println("MainActivity : onActivityResult ");
+        System.out.println("MainActivity : resultCode " + resultCode);
+        System.out.println("MainActivity : data - " + data);
+        if(data != null) {
+            MaskedWallet maskedWallet = data.getParcelableExtra(WalletConstants.EXTRA_MASKED_WALLET);
+            System.out.println("maskedWallet : " + maskedWallet);
+        }
         // to get back MaskedWallet using call back method.
         if (Simplify.handleAndroidPayResult(requestCode, resultCode, data)) {
             return;
@@ -103,11 +113,12 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
     @Override
     public void onAndroidPayCancelled() {
 
+        System.out.println("MainActivity : onAndroidPayCancelled ");
     }
 
     @Override
     public void onAndroidPayError(int errorCode) {
-
+        System.out.println("MainActivity : onAndroidPayError - errorCode" + errorCode);
     }
 
 
@@ -238,6 +249,15 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
 
     private MaskedWalletRequest getMaskedWalletRequest() {
 
+        PaymentMethodTokenizationParameters parameters =
+                PaymentMethodTokenizationParameters.newBuilder()
+                        .setPaymentMethodTokenizationType(PaymentMethodTokenizationType.NETWORK_TOKEN)
+                        .addParameter(
+                                "publicKey",
+                                "BPhVspn70Zj2Kkgu9t8+ApEuUWsI/zos5whGCQBlgOkuYagOis7qsrcbQrcprjvTZO3XOU+Qbcc28FSgsRtcgQE="
+                        )
+                        .build();
+
         return MaskedWalletRequest.newBuilder()
                 .setMerchantName("Overpriced Coffee Shop")
                 .setPhoneNumberRequired(true)
@@ -255,6 +275,7 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
                                 .build())
                         .build())
                 .setEstimatedTotalPrice("5.00")
+                //.setPaymentMethodTokenizationParameters(parameters)
                 .build();
     }
 

@@ -16,6 +16,7 @@ import com.google.android.gms.wallet.FullWallet;
 import com.google.android.gms.wallet.FullWalletRequest;
 import com.google.android.gms.wallet.LineItem;
 import com.google.android.gms.wallet.MaskedWallet;
+import com.google.android.gms.wallet.PaymentMethodToken;
 import com.google.android.gms.wallet.Wallet;
 import com.google.android.gms.wallet.WalletConstants;
 import com.google.android.gms.wallet.fragment.SupportWalletFragment;
@@ -68,6 +69,8 @@ public class ConfirmationActivity extends AppCompatActivity implements Simplify.
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+        System.out.println("ConfirmationActivity : onActivityResult");
         if (Simplify.handleAndroidPayResult(requestCode, resultCode, data)) {
             return;
         }
@@ -123,6 +126,21 @@ public class ConfirmationActivity extends AppCompatActivity implements Simplify.
 
     @Override
     public void onReceivedFullWallet(FullWallet fullWallet) {
+
+        System.out.println("onReceivedFullWallet....");
+        System.out.println("(fullWallet == null) ? " + (fullWallet ==null));
+
+        if(fullWallet != null) {
+
+            // Get payment method token
+            PaymentMethodToken token = fullWallet.getPaymentMethodToken();
+
+            // Get the JSON of the token object as a String
+            String tokenJSON = token.getToken();
+
+            System.out.println("token : " + tokenJSON);
+        }
+
         // create simplify token with wallet
         Simplify.createAndroidPayCardToken(fullWallet, new CardToken.Callback() {
             @Override
