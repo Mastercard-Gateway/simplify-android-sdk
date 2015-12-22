@@ -1,6 +1,5 @@
 package com.simplify.android.sdk.sample;
 
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -10,7 +9,6 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 
-import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.BooleanResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
@@ -23,9 +21,6 @@ import com.google.android.gms.wallet.PaymentMethodTokenizationParameters;
 import com.google.android.gms.wallet.PaymentMethodTokenizationType;
 import com.google.android.gms.wallet.Wallet;
 import com.google.android.gms.wallet.WalletConstants;
-import com.google.android.gms.wallet.fragment.BuyButtonAppearance;
-import com.google.android.gms.wallet.fragment.BuyButtonText;
-import com.google.android.gms.wallet.fragment.Dimension;
 import com.google.android.gms.wallet.fragment.WalletFragment;
 import com.google.android.gms.wallet.fragment.WalletFragmentInitParams;
 import com.google.android.gms.wallet.fragment.WalletFragmentMode;
@@ -180,15 +175,15 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
 
         // Define fragment style
         WalletFragmentStyle fragmentStyle = new WalletFragmentStyle()
-                .setBuyButtonText(BuyButtonText.BUY_NOW)
-                .setBuyButtonAppearance(BuyButtonAppearance.CLASSIC)
-                .setBuyButtonWidth(Dimension.MATCH_PARENT);
+                .setBuyButtonText(WalletFragmentStyle.BuyButtonText.BUY_WITH)
+                .setBuyButtonAppearance(WalletFragmentStyle.BuyButtonAppearance.ANDROID_PAY_DARK)
+                .setBuyButtonWidth(WalletFragmentStyle.Dimension.MATCH_PARENT);
 
         // Define fragment options
         WalletFragmentOptions fragmentOptions = WalletFragmentOptions.newBuilder()
-                .setEnvironment(WalletConstants.ENVIRONMENT_SANDBOX)
+                .setEnvironment(WalletConstants.ENVIRONMENT_TEST)
                 .setFragmentStyle(fragmentStyle)
-                .setTheme(WalletConstants.THEME_HOLO_LIGHT)
+                .setTheme(WalletConstants.THEME_LIGHT)
                 .setMode(WalletFragmentMode.BUY_BUTTON)
                 .build();
 
@@ -275,7 +270,7 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
                                 .build())
                         .build())
                 .setEstimatedTotalPrice("5.00")
-                //.setPaymentMethodTokenizationParameters(parameters)
+                .setPaymentMethodTokenizationParameters(parameters)
                 .build();
     }
 

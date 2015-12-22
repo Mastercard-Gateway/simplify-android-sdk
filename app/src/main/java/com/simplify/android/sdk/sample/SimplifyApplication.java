@@ -37,8 +37,8 @@ public class SimplifyApplication extends Application {
                 .addConnectionCallbacks(callbacks)
                 .addOnConnectionFailedListener(callbacks)
                 .addApi(Wallet.API, new Wallet.WalletOptions.Builder()
-                        .setEnvironment(WalletConstants.ENVIRONMENT_SANDBOX)
-                        .setTheme(WalletConstants.THEME_HOLO_LIGHT)
+                        .setEnvironment(WalletConstants.ENVIRONMENT_TEST)
+                        .setTheme(WalletConstants.THEME_LIGHT)
                         .build())
                 .build();
 
