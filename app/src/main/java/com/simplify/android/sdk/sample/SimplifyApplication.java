@@ -22,7 +22,7 @@ public class SimplifyApplication extends Application {
             Bundle bundle = getPackageManager().getApplicationInfo(getPackageName(), PackageManager.GET_META_DATA).metaData;
             String apiKey = bundle.getString("com.simplify.android.sdk.apikey");
             if (apiKey != null) {
-                Simplify.init(apiKey);
+                Simplify.init(apiKey, "BPhVspn70Zj2Kkgu9t8+ApEuUWsI/zos5whGCQBlgOkuYagOis7qsrcbQrcprjvTZO3XOU+Qbcc28FSgsRtcgQE=");
             }
         } catch (Exception e) {
             e.printStackTrace();
