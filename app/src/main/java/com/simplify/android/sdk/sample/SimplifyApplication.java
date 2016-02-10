@@ -4,6 +4,7 @@ import android.app.Application;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -17,12 +18,15 @@ public class SimplifyApplication extends Application {
     public void onCreate() {
         super.onCreate();
 
-        // init Simplify SDK with public key stored in metadata
+        // init Simplify SDK with public api key stored in metadata
         try {
             Bundle bundle = getPackageManager().getApplicationInfo(getPackageName(), PackageManager.GET_META_DATA).metaData;
-            String apiKey = bundle.getString("com.simplify.android.sdk.apikey");
+            String apiKey = bundle.getString("com.simplify.android.sdk.apiKey", null);
             if (apiKey != null) {
-                Simplify.init(apiKey, "BPhVspn70Zj2Kkgu9t8+ApEuUWsI/zos5whGCQBlgOkuYagOis7qsrcbQrcprjvTZO3XOU+Qbcc28FSgsRtcgQE=");
+                // retrieve android pay public key
+                String androidPayPublicKey = bundle.getString("com.simplify.android.sdk.androidPayPublicKey", null);
+
+                Simplify.init(apiKey, androidPayPublicKey);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -57,7 +61,7 @@ public class SimplifyApplication extends Application {
         }
 
         @Override
-        public void onConnectionFailed(ConnectionResult connectionResult) {
+        public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
 
         }
     }

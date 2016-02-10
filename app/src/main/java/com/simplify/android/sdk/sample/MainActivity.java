@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -72,12 +71,8 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
-        System.out.println("MainActivity : onActivityResult ");
-        System.out.println("MainActivity : resultCode " + resultCode);
-        System.out.println("MainActivity : data - " + data);
         if(data != null) {
             MaskedWallet maskedWallet = data.getParcelableExtra(WalletConstants.EXTRA_MASKED_WALLET);
-            System.out.println("maskedWallet : " + maskedWallet);
         }
         // to get back MaskedWallet using call back method.
         if (Simplify.handleAndroidPayResult(requestCode, resultCode, data)) {
@@ -108,12 +103,11 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
     @Override
     public void onAndroidPayCancelled() {
 
-        System.out.println("MainActivity : onAndroidPayCancelled ");
     }
 
     @Override
     public void onAndroidPayError(int errorCode) {
-        System.out.println("MainActivity : onAndroidPayError - errorCode" + errorCode);
+
     }
 
 
@@ -148,12 +142,10 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
 
     private void initializeAndroidPay() {
 
-        System.out.println("initializeAndroidPay");
         Wallet.Payments.isReadyToPay(mGoogleApiClient).setResultCallback(
                 new ResultCallback<BooleanResult>() {
                     @Override
                     public void onResult(@NonNull BooleanResult booleanResult) {
-                        System.out.println("isReadyToPay : " + booleanResult.getValue());
                         if (booleanResult.getStatus().isSuccess()) {
                             if (booleanResult.getValue()) {
                                 showGoogleBuyButton();
@@ -162,7 +154,6 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
                             }
                         } else {
                             // Error making isReadyToPay call
-                            Log.e(TAG, "isReadyToPay:" + booleanResult.getStatus());
                         }
                     }
                 });
@@ -170,7 +161,6 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
 
     private void showGoogleBuyButton() {
 
-        System.out.println("showGoogleBuyButton");
         findViewById(R.id.buy_button_layout).setVisibility(View.VISIBLE);
 
         // Define fragment style
@@ -208,7 +198,6 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
     }
 
     private void hideGoogleBuyButton() {
-        System.out.println("hideGoogleBuyButton");
         findViewById(R.id.buy_button_layout).setVisibility(View.GONE);
     }
 
@@ -247,28 +236,27 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
         PaymentMethodTokenizationParameters parameters =
                 PaymentMethodTokenizationParameters.newBuilder()
                         .setPaymentMethodTokenizationType(PaymentMethodTokenizationType.NETWORK_TOKEN)
-                        .addParameter(
-                                "publicKey",
-                                "BPhVspn70Zj2Kkgu9t8+ApEuUWsI/zos5whGCQBlgOkuYagOis7qsrcbQrcprjvTZO3XOU+Qbcc28FSgsRtcgQE="
-                        )
+                        .addParameter("publicKey", Simplify.getAndroidPayPublicKey())
                         .build();
+
+        Cart cart = Cart.newBuilder()
+                .setCurrencyCode(CURRENCY_CODE_USD)
+                .setTotalPrice("15.00")
+                .addLineItem(LineItem.newBuilder()
+                        .setCurrencyCode(CURRENCY_CODE_USD)
+                        .setDescription("Iced Coffee")
+                        .setQuantity("1")
+                        .setUnitPrice("15.00")
+                        .setTotalPrice("15.00")
+                        .build())
+                .build();
 
         return MaskedWalletRequest.newBuilder()
                 .setMerchantName("Overpriced Coffee Shop")
                 .setPhoneNumberRequired(true)
                 .setShippingAddressRequired(true)
                 .setCurrencyCode(CURRENCY_CODE_USD)
-                .setCart(Cart.newBuilder()
-                        .setCurrencyCode(CURRENCY_CODE_USD)
-                        .setTotalPrice("15.00")
-                        .addLineItem(LineItem.newBuilder()
-                                .setCurrencyCode(CURRENCY_CODE_USD)
-                                .setDescription("Iced Coffee")
-                                .setQuantity("1")
-                                .setUnitPrice("15.00")
-                                .setTotalPrice("15.00")
-                                .build())
-                        .build())
+                .setCart(cart)
                 .setEstimatedTotalPrice("5.00")
                 .setPaymentMethodTokenizationParameters(parameters)
                 .build();

@@ -91,14 +91,12 @@ public class ConfirmationActivity extends AppCompatActivity implements Simplify.
                 .setMaskedWalletDetailsBackgroundColor(
                         ContextCompat.getColor(this, android.R.color.white))
                 .setMaskedWalletDetailsButtonBackgroundResource(
-                        android.R.color.holo_orange_dark)
-                .setMaskedWalletDetailsLogoTextColor(
-                        ContextCompat.getColor(this, android.R.color.black));
+                        android.R.color.holo_orange_dark);
 
         WalletFragmentOptions walletFragmentOptions = WalletFragmentOptions.newBuilder()
-                .setEnvironment(WalletConstants.ENVIRONMENT_SANDBOX)
+                .setEnvironment(WalletConstants.ENVIRONMENT_TEST)
                 .setFragmentStyle(walletFragmentStyle)
-                .setTheme(WalletConstants.THEME_HOLO_LIGHT)
+                .setTheme(WalletConstants.THEME_LIGHT)
                 .setMode(WalletFragmentMode.SELECTION_DETAILS)
                 .build();
 
