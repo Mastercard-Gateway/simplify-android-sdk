@@ -2,20 +2,25 @@ package com.simplify.android.sdk.sample;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 
+import com.google.android.gms.common.api.BooleanResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.wallet.Cart;
 import com.google.android.gms.wallet.FullWallet;
 import com.google.android.gms.wallet.LineItem;
 import com.google.android.gms.wallet.MaskedWallet;
 import com.google.android.gms.wallet.MaskedWalletRequest;
+import com.google.android.gms.wallet.PaymentMethodTokenizationParameters;
+import com.google.android.gms.wallet.PaymentMethodTokenizationType;
+import com.google.android.gms.wallet.Wallet;
 import com.google.android.gms.wallet.WalletConstants;
-import com.google.android.gms.wallet.fragment.BuyButtonAppearance;
-import com.google.android.gms.wallet.fragment.BuyButtonText;
-import com.google.android.gms.wallet.fragment.Dimension;
 import com.google.android.gms.wallet.fragment.WalletFragment;
 import com.google.android.gms.wallet.fragment.WalletFragmentInitParams;
 import com.google.android.gms.wallet.fragment.WalletFragmentMode;
@@ -28,12 +33,13 @@ import com.simplify.android.sdk.Simplify;
 
 public class MainActivity extends AppCompatActivity implements Simplify.AndroidPayCallback {
 
+    private static final String TAG = MainActivity.class.getSimpleName();
     private static final String CURRENCY_CODE_USD = "USD";
     private static final String WALLET_FRAGMENT_ID = "wallet_fragment";
 
     private CardEditor mCardEditor;
     private Button mPayButton;
-
+    private GoogleApiClient mGoogleApiClient;
 
     //---------------------------------------------
     // Life-Cycle
@@ -65,6 +71,14 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+        System.out.println("MainActivity : onActivityResult ");
+        System.out.println("MainActivity : resultCode " + resultCode);
+        System.out.println("MainActivity : data - " + data);
+        if(data != null) {
+            MaskedWallet maskedWallet = data.getParcelableExtra(WalletConstants.EXTRA_MASKED_WALLET);
+            System.out.println("maskedWallet : " + maskedWallet);
+        }
         // to get back MaskedWallet using call back method.
         if (Simplify.handleAndroidPayResult(requestCode, resultCode, data)) {
             return;
@@ -94,11 +108,12 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
     @Override
     public void onAndroidPayCancelled() {
 
+        System.out.println("MainActivity : onAndroidPayCancelled ");
     }
 
     @Override
     public void onAndroidPayError(int errorCode) {
-
+        System.out.println("MainActivity : onAndroidPayError - errorCode" + errorCode);
     }
 
 
@@ -107,6 +122,8 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
     //---------------------------------------------
 
     private void init() {
+
+        mGoogleApiClient = ((SimplifyApplication)getApplication()).getGoogleApiClient(this);
 
         mPayButton = (Button) findViewById(R.id.btnPay);
         mPayButton.setEnabled(false);
@@ -125,17 +142,48 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
             }
         });
 
+//        initializeAndroidPay();
+        showGoogleBuyButton();
+    }
+
+    private void initializeAndroidPay() {
+
+        System.out.println("initializeAndroidPay");
+        Wallet.Payments.isReadyToPay(mGoogleApiClient).setResultCallback(
+                new ResultCallback<BooleanResult>() {
+                    @Override
+                    public void onResult(@NonNull BooleanResult booleanResult) {
+                        System.out.println("isReadyToPay : " + booleanResult.getValue());
+                        if (booleanResult.getStatus().isSuccess()) {
+                            if (booleanResult.getValue()) {
+                                showGoogleBuyButton();
+                            } else {
+                                hideGoogleBuyButton();
+                            }
+                        } else {
+                            // Error making isReadyToPay call
+                            Log.e(TAG, "isReadyToPay:" + booleanResult.getStatus());
+                        }
+                    }
+                });
+    }
+
+    private void showGoogleBuyButton() {
+
+        System.out.println("showGoogleBuyButton");
+        findViewById(R.id.buy_button_layout).setVisibility(View.VISIBLE);
+
         // Define fragment style
         WalletFragmentStyle fragmentStyle = new WalletFragmentStyle()
-                .setBuyButtonText(BuyButtonText.BUY_NOW)
-                .setBuyButtonAppearance(BuyButtonAppearance.CLASSIC)
-                .setBuyButtonWidth(Dimension.MATCH_PARENT);
+                .setBuyButtonText(WalletFragmentStyle.BuyButtonText.BUY_WITH)
+                .setBuyButtonAppearance(WalletFragmentStyle.BuyButtonAppearance.ANDROID_PAY_DARK)
+                .setBuyButtonWidth(WalletFragmentStyle.Dimension.MATCH_PARENT);
 
         // Define fragment options
         WalletFragmentOptions fragmentOptions = WalletFragmentOptions.newBuilder()
-                .setEnvironment(WalletConstants.ENVIRONMENT_SANDBOX)
+                .setEnvironment(WalletConstants.ENVIRONMENT_TEST)
                 .setFragmentStyle(fragmentStyle)
-                .setTheme(WalletConstants.THEME_HOLO_LIGHT)
+                .setTheme(WalletConstants.THEME_LIGHT)
                 .setMode(WalletFragmentMode.BUY_BUTTON)
                 .build();
 
@@ -156,10 +204,16 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
         getFragmentManager().beginTransaction()
                 .replace(R.id.buy_button_holder, walletFragment, WALLET_FRAGMENT_ID)
                 .commit();
+
     }
 
+    private void hideGoogleBuyButton() {
+        System.out.println("hideGoogleBuyButton");
+        findViewById(R.id.buy_button_layout).setVisibility(View.GONE);
+    }
 
     private void requestCardToken() {
+
         mPayButton.setEnabled(false);
 
         Card card = mCardEditor.getCard();
@@ -190,6 +244,15 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
 
     private MaskedWalletRequest getMaskedWalletRequest() {
 
+        PaymentMethodTokenizationParameters parameters =
+                PaymentMethodTokenizationParameters.newBuilder()
+                        .setPaymentMethodTokenizationType(PaymentMethodTokenizationType.NETWORK_TOKEN)
+                        .addParameter(
+                                "publicKey",
+                                "BPhVspn70Zj2Kkgu9t8+ApEuUWsI/zos5whGCQBlgOkuYagOis7qsrcbQrcprjvTZO3XOU+Qbcc28FSgsRtcgQE="
+                        )
+                        .build();
+
         return MaskedWalletRequest.newBuilder()
                 .setMerchantName("Overpriced Coffee Shop")
                 .setPhoneNumberRequired(true)
@@ -207,6 +270,8 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
                                 .build())
                         .build())
                 .setEstimatedTotalPrice("5.00")
+                .setPaymentMethodTokenizationParameters(parameters)
                 .build();
     }
+
 }
