@@ -15,9 +15,5 @@ buildscript {
 allprojects {
     repositories {
         jcenter()
-
-//        maven {
-//            url 'http://tools.labs.mastercard.com/artifactory/libs-release-local'
-//        }
     }
 }
