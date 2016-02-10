@@ -142,7 +142,7 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
             }
         });
 
-        //initializeAndroidPay();
+//        initializeAndroidPay();
         showGoogleBuyButton();
     }
 
@@ -153,7 +153,7 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
                 new ResultCallback<BooleanResult>() {
                     @Override
                     public void onResult(@NonNull BooleanResult booleanResult) {
-                        System.out.println("booleanResult.getValue() : + booleanResult.getValue()");
+                        System.out.println("isReadyToPay : " + booleanResult.getValue());
                         if (booleanResult.getStatus().isSuccess()) {
                             if (booleanResult.getValue()) {
                                 showGoogleBuyButton();

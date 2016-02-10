@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 23
-    buildToolsVersion "23.0.2"
+    buildToolsVersion '23.0.2'
 
     defaultConfig {
         applicationId "com.simplify.android.sdk.sample"
@@ -10,6 +10,13 @@ android {
         targetSdkVersion 23
         versionCode 9
         versionName '2.1.2'
+    }
+
+    signingConfigs {
+        debug {
+            storeFile file("../../mpos-client/debug.keystore")
+            storePassword 'android'
+        }
     }
 
     buildTypes {
@@ -25,6 +32,6 @@ dependencies {
     compile 'com.android.support:appcompat-v7:23.1.1'
     compile 'com.android.support:design:23.1.1'
     compile 'com.google.android.gms:play-services-wallet:8.4.0'
-//    compile 'com.simplify:simplify-android:2.0.3'
+    //    compile 'com.simplify:simplify-android:2.0.3'
     compile project(':simplify-android')
 }
