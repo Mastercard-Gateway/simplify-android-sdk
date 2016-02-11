@@ -31,30 +31,22 @@ import com.simplify.android.sdk.Simplify;
 public class ConfirmationActivity extends AppCompatActivity implements Simplify.AndroidPayCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     static final String TAG = ConfirmationActivity.class.getSimpleName();
-    static final String CURRENCY_CODE_USD = "USD";
 
-    Button mPayButton;
     GoogleApiClient mGoogleApiClient;
     MaskedWallet mMaskedWallet;
+    Button mPayButton;
 
+
+    //---------------------------------------------
+    // Life-Cycle
+    //---------------------------------------------
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_confirm);
 
-        //google api client required to request full wallet
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .addApi(Wallet.API, new Wallet.WalletOptions.Builder()
-                        .setEnvironment(Constants.WALLET_ENVIRONMENT)
-                        .setTheme(WalletConstants.THEME_LIGHT)
-                        .build())
-                .build();
-
         mMaskedWallet = getIntent().getParcelableExtra(WalletConstants.EXTRA_MASKED_WALLET);
-
 
         init();
     }
@@ -85,45 +77,6 @@ public class ConfirmationActivity extends AppCompatActivity implements Simplify.
         super.onActivityResult(requestCode, resultCode, data);
     }
 
-    void init() {
-
-        mPayButton = (Button) findViewById(R.id.btn_pay);
-        mPayButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                confirmPurchase();
-            }
-        });
-
-        //fragment style for confirmation screen
-        WalletFragmentStyle walletFragmentStyle = new WalletFragmentStyle()
-                .setMaskedWalletDetailsBackgroundColor(
-                        ContextCompat.getColor(this, android.R.color.white))
-                .setMaskedWalletDetailsButtonBackgroundResource(
-                        android.R.color.holo_orange_dark);
-
-        WalletFragmentOptions walletFragmentOptions = WalletFragmentOptions.newBuilder()
-                .setEnvironment(Constants.WALLET_ENVIRONMENT)
-                .setFragmentStyle(walletFragmentStyle)
-                .setTheme(WalletConstants.THEME_LIGHT)
-                .setMode(WalletFragmentMode.SELECTION_DETAILS)
-                .build();
-
-        SupportWalletFragment walletFragment = SupportWalletFragment.newInstance(walletFragmentOptions);
-
-        WalletFragmentInitParams startParams = WalletFragmentInitParams.newBuilder()
-                .setMaskedWallet(mMaskedWallet)
-                .setMaskedWalletRequestCode(Simplify.REQUEST_CODE_MASKED_WALLET)
-                .build();
-
-        walletFragment.initialize(startParams);
-
-        // add Wallet fragment to the UI
-        getSupportFragmentManager().beginTransaction()
-                .replace(R.id.confirm_wallet_holder, walletFragment)
-                .commit();
-    }
-
 
     //---------------------------------------------
     // Android Pay callback methods
@@ -131,7 +84,7 @@ public class ConfirmationActivity extends AppCompatActivity implements Simplify.
 
     @Override
     public void onReceivedMaskedWallet(MaskedWallet maskedWallet) {
-        mMaskedWallet = maskedWallet;
+
     }
 
     @Override
@@ -150,6 +103,8 @@ public class ConfirmationActivity extends AppCompatActivity implements Simplify.
 
             @Override
             public void onError(Throwable throwable) {
+                throwable.printStackTrace();
+
                 mPayButton.setEnabled(true);
 
                 Intent i = new Intent(ConfirmationActivity.this, ThankYouActivity.class);
@@ -190,6 +145,60 @@ public class ConfirmationActivity extends AppCompatActivity implements Simplify.
     }
 
 
+    //---------------------------------------------
+    // Util
+    //---------------------------------------------
+
+    void init() {
+
+        //google api client required to request full wallet
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(Wallet.API, new Wallet.WalletOptions.Builder()
+                        .setEnvironment(Constants.WALLET_ENVIRONMENT)
+                        .setTheme(WalletConstants.THEME_LIGHT)
+                        .build())
+                .build();
+
+        // init pay button
+        mPayButton = (Button) findViewById(R.id.btn_pay);
+        mPayButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                confirmPurchase();
+            }
+        });
+
+        //fragment style for confirmation screen
+        WalletFragmentStyle walletFragmentStyle = new WalletFragmentStyle()
+                .setMaskedWalletDetailsBackgroundColor(
+                        ContextCompat.getColor(this, android.R.color.white))
+                .setMaskedWalletDetailsButtonBackgroundResource(
+                        android.R.color.holo_orange_dark);
+
+        WalletFragmentOptions walletFragmentOptions = WalletFragmentOptions.newBuilder()
+                .setEnvironment(Constants.WALLET_ENVIRONMENT)
+                .setFragmentStyle(walletFragmentStyle)
+                .setTheme(WalletConstants.THEME_LIGHT)
+                .setMode(WalletFragmentMode.SELECTION_DETAILS)
+                .build();
+
+        SupportWalletFragment walletFragment = SupportWalletFragment.newInstance(walletFragmentOptions);
+
+        WalletFragmentInitParams startParams = WalletFragmentInitParams.newBuilder()
+                .setMaskedWallet(mMaskedWallet)
+                .setMaskedWalletRequestCode(Simplify.REQUEST_CODE_MASKED_WALLET)
+                .build();
+
+        walletFragment.initialize(startParams);
+
+        // add Wallet fragment to the UI
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.confirm_wallet_holder, walletFragment)
+                .commit();
+    }
+
     void confirmPurchase() {
 
         mPayButton.setEnabled(false);
@@ -207,10 +216,10 @@ public class ConfirmationActivity extends AppCompatActivity implements Simplify.
         return FullWalletRequest.newBuilder()
                 .setGoogleTransactionId(mMaskedWallet.getGoogleTransactionId())
                 .setCart(Cart.newBuilder()
-                        .setCurrencyCode(CURRENCY_CODE_USD)
+                        .setCurrencyCode(Constants.CURRENCY_CODE_USD)
                         .setTotalPrice("15.00")
                         .addLineItem(LineItem.newBuilder()
-                                .setCurrencyCode(CURRENCY_CODE_USD)
+                                .setCurrencyCode(Constants.CURRENCY_CODE_USD)
                                 .setDescription("Iced Coffee")
                                 .setQuantity("1")
                                 .setUnitPrice("15.00")

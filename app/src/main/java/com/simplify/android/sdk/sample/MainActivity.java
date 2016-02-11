@@ -35,13 +35,14 @@ import com.simplify.android.sdk.Simplify;
 
 public class MainActivity extends AppCompatActivity implements Simplify.AndroidPayCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
-    private static final String TAG = MainActivity.class.getSimpleName();
-    private static final String CURRENCY_CODE_USD = "USD";
-    private static final String WALLET_FRAGMENT_ID = "wallet_fragment";
+    static final String TAG = MainActivity.class.getSimpleName();
 
-    private CardEditor mCardEditor;
-    private Button mPayButton;
-    private GoogleApiClient mGoogleApiClient;
+    static final String WALLET_FRAGMENT_ID = "wallet_fragment";
+
+    GoogleApiClient mGoogleApiClient;
+    CardEditor mCardEditor;
+    Button mPayButton;
+
 
     //---------------------------------------------
     // Life-Cycle
@@ -112,7 +113,7 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
 
     @Override
     public void onAndroidPayError(int errorCode) {
-
+        Log.e(TAG, "Android Pay error code: " + errorCode);
     }
 
 
@@ -167,12 +168,8 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
             }
         });
 
-        initializeAndroidPay();
-    }
-
-    void initializeAndroidPay() {
-        Wallet.Payments.isReadyToPay(mGoogleApiClient).setResultCallback(
-                new ResultCallback<BooleanResult>() {
+        Wallet.Payments.isReadyToPay(mGoogleApiClient)
+                .setResultCallback(new ResultCallback<BooleanResult>() {
                     @Override
                     public void onResult(@NonNull BooleanResult booleanResult) {
                         if (booleanResult.getStatus().isSuccess()) {
@@ -271,10 +268,10 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
                         .build();
 
         Cart cart = Cart.newBuilder()
-                .setCurrencyCode(CURRENCY_CODE_USD)
+                .setCurrencyCode(Constants.CURRENCY_CODE_USD)
                 .setTotalPrice("15.00")
                 .addLineItem(LineItem.newBuilder()
-                        .setCurrencyCode(CURRENCY_CODE_USD)
+                        .setCurrencyCode(Constants.CURRENCY_CODE_USD)
                         .setDescription("Iced Coffee")
                         .setQuantity("1")
                         .setUnitPrice("15.00")
@@ -286,7 +283,7 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
                 .setMerchantName("Overpriced Coffee Shop")
                 .setPhoneNumberRequired(true)
                 .setShippingAddressRequired(true)
-                .setCurrencyCode(CURRENCY_CODE_USD)
+                .setCurrencyCode(Constants.CURRENCY_CODE_USD)
                 .setCart(cart)
                 .setEstimatedTotalPrice("15.00")
                 .setPaymentMethodTokenizationParameters(parameters)
