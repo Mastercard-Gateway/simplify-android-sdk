@@ -12,7 +12,7 @@
         <!-- Add your Simplify public key here -->
         <meta-data
             android:name="com.simplify.android.sdk.apiKey"
-            android:value="sbpb_OTQ5YjczMTQtMmQzNy00ZGIwLWExZDgtMzY0ZGQ5ODcxNjNh" />
+            android:value="sbpb_164BC803ADF012" />
             <!--android:value="YOUR_SIMPLIFY_PUBLIC_API_KEY" />-->
 
         <!-- Add your Android Pay public key here -->
@@ -20,7 +20,7 @@
         <!-- https://www.simplify.com/commerce/app#/account/profile -->
         <meta-data
             android:name="com.simplify.android.sdk.androidPayPublicKey"
-            android:value="BPhVspn70Zj2Kkgu9t8+ApEuUWsI/zos5whGCQBlgOkuYagOis7qsrcbQrcprjvTZO3XOU+Qbcc28FSgsRtcgQE=" />
+            android:value="BBD+snfFrilz9sFoPATLUNe4H4trTaswokqb4PkWEHN8xJQfguQhnlk+ImK9Pp1kOLTVZuU/1kyTwtOSEeXlNM8=" />
             <!--android:value="YOUR_ANDROID_PAY_PUBLIC_KEY" />-->
 
         <!-- Enables the Android Pay API -->

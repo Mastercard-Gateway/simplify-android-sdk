@@ -264,7 +264,7 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
         PaymentMethodTokenizationParameters parameters =
                 PaymentMethodTokenizationParameters.newBuilder()
                         .setPaymentMethodTokenizationType(PaymentMethodTokenizationType.NETWORK_TOKEN)
-                        .addParameter("publicKey", Simplify.getAndroidPayPublicKey())
+                        .addParameter("publicKey", ((SimplifyApplication) getApplication()).getAndroidPayPublicKey())
                         .build();
 
         Cart cart = Cart.newBuilder()

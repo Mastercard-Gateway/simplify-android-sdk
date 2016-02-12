@@ -8,6 +8,8 @@ import com.simplify.android.sdk.Simplify;
 
 public class SimplifyApplication extends Application {
 
+    String mAndroidPayPublicKey;
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -17,13 +19,18 @@ public class SimplifyApplication extends Application {
             Bundle bundle = getPackageManager().getApplicationInfo(getPackageName(), PackageManager.GET_META_DATA).metaData;
             String apiKey = bundle.getString("com.simplify.android.sdk.apiKey", null);
             if (apiKey != null) {
-                // retrieve android pay public key
-                String androidPayPublicKey = bundle.getString("com.simplify.android.sdk.androidPayPublicKey", null);
-
-                Simplify.init(apiKey, androidPayPublicKey);
+                Simplify.init(apiKey);
             }
+
+            // get android pay public key
+            mAndroidPayPublicKey = bundle.getString("com.simplify.android.sdk.androidPayPublicKey", null);
+
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    String getAndroidPayPublicKey() {
+        return mAndroidPayPublicKey;
     }
 }

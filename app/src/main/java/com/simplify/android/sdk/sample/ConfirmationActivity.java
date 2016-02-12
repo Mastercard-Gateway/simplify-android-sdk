@@ -90,8 +90,10 @@ public class ConfirmationActivity extends AppCompatActivity implements Simplify.
     @Override
     public void onReceivedFullWallet(FullWallet fullWallet) {
 
+        String publicKey = ((SimplifyApplication) getApplication()).getAndroidPayPublicKey();
+
         // create simplify token with wallet
-        Simplify.createAndroidPayCardToken(fullWallet, new CardToken.Callback() {
+        Simplify.createAndroidPayCardToken(fullWallet, publicKey, new CardToken.Callback() {
             @Override
             public void onSuccess(CardToken cardToken) {
                 mPayButton.setEnabled(true);
