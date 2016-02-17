@@ -12,12 +12,14 @@
         <!-- Add your Simplify public key here -->
         <meta-data
             android:name="com.simplify.android.sdk.apiKey"
-            android:value="sbpb_OTQ5YjczMTQtMmQzNy00ZGIwLWExZDgtMzY0ZGQ5ODcxNjNh" />
+            android:value="YOUR_SIMPLIFY_PUBLIC_API_KEY" />
 
         <!-- Add your Android Pay public key here -->
+        <!-- To retrieve your Android Pay public key, visit your account settings at -->
+        <!-- https://www.simplify.com/commerce/app#/account/profile -->
         <meta-data
             android:name="com.simplify.android.sdk.androidPayPublicKey"
-            android:value="BPhVspn70Zj2Kkgu9t8+ApEuUWsI/zos5whGCQBlgOkuYagOis7qsrcbQrcprjvTZO3XOU+Qbcc28FSgsRtcgQE=" />
+            android:value="YOUR_ANDROID_PAY_PUBLIC_KEY" />
 
         <!-- Enables the Android Pay API -->
         <meta-data

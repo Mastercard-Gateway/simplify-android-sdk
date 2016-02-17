@@ -2,6 +2,8 @@ package com.simplify.android.sdk.sample;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -9,6 +11,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.wallet.Cart;
 import com.google.android.gms.wallet.FullWallet;
@@ -25,26 +28,25 @@ import com.google.android.gms.wallet.fragment.WalletFragmentStyle;
 import com.simplify.android.sdk.CardToken;
 import com.simplify.android.sdk.Simplify;
 
-public class ConfirmationActivity extends AppCompatActivity implements Simplify.AndroidPayCallback {
+public class ConfirmationActivity extends AppCompatActivity implements Simplify.AndroidPayCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     static final String TAG = ConfirmationActivity.class.getSimpleName();
-    static final String CURRENCY_CODE_USD = "USD";
 
-    Button mPayButton;
     GoogleApiClient mGoogleApiClient;
     MaskedWallet mMaskedWallet;
+    Button mPayButton;
 
+
+    //---------------------------------------------
+    // Life-Cycle
+    //---------------------------------------------
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_confirm);
 
-        //google api client required to request full wallet
-        mGoogleApiClient = ((SimplifyApplication)getApplication()).getGoogleApiClient(this);
-
         mMaskedWallet = getIntent().getParcelableExtra(WalletConstants.EXTRA_MASKED_WALLET);
-
 
         init();
     }
@@ -67,8 +69,7 @@ public class ConfirmationActivity extends AppCompatActivity implements Simplify.
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-
-        System.out.println("ConfirmationActivity : onActivityResult");
+        // let the Simplify SDK marshall out the android pay activity results
         if (Simplify.handleAndroidPayResult(requestCode, resultCode, data)) {
             return;
         }
@@ -76,8 +77,93 @@ public class ConfirmationActivity extends AppCompatActivity implements Simplify.
         super.onActivityResult(requestCode, resultCode, data);
     }
 
+
+    //---------------------------------------------
+    // Android Pay callback methods
+    //---------------------------------------------
+
+    @Override
+    public void onReceivedMaskedWallet(MaskedWallet maskedWallet) {
+
+    }
+
+    @Override
+    public void onReceivedFullWallet(FullWallet fullWallet) {
+
+        String publicKey = ((SimplifyApplication) getApplication()).getAndroidPayPublicKey();
+
+        // create simplify token with wallet
+        Simplify.createAndroidPayCardToken(fullWallet, publicKey, new CardToken.Callback() {
+            @Override
+            public void onSuccess(CardToken cardToken) {
+                mPayButton.setEnabled(true);
+
+                Intent i = new Intent(ConfirmationActivity.this, ThankYouActivity.class);
+                i.putExtra(ThankYouActivity.EXTRA_PAGE, ThankYouActivity.PAGE_SUCCESS);
+                startActivity(i);
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+                throwable.printStackTrace();
+
+                mPayButton.setEnabled(true);
+
+                Intent i = new Intent(ConfirmationActivity.this, ThankYouActivity.class);
+                i.putExtra(ThankYouActivity.EXTRA_PAGE, ThankYouActivity.PAGE_FAIL);
+                startActivity(i);
+            }
+        });
+    }
+
+    @Override
+    public void onAndroidPayCancelled() {
+
+    }
+
+    @Override
+    public void onAndroidPayError(int errorCode) {
+        Log.e(TAG, "Android Pay error code: " + errorCode);
+    }
+
+
+    //---------------------------------------------
+    // Google API Client callback methods
+    //---------------------------------------------
+
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+
+    }
+
+
+    //---------------------------------------------
+    // Util
+    //---------------------------------------------
+
     void init() {
 
+        //google api client required to request full wallet
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(Wallet.API, new Wallet.WalletOptions.Builder()
+                        .setEnvironment(Constants.WALLET_ENVIRONMENT)
+                        .setTheme(WalletConstants.THEME_LIGHT)
+                        .build())
+                .build();
+
+        // init pay button
         mPayButton = (Button) findViewById(R.id.btn_pay);
         mPayButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -94,7 +180,7 @@ public class ConfirmationActivity extends AppCompatActivity implements Simplify.
                         android.R.color.holo_orange_dark);
 
         WalletFragmentOptions walletFragmentOptions = WalletFragmentOptions.newBuilder()
-                .setEnvironment(WalletConstants.ENVIRONMENT_TEST)
+                .setEnvironment(Constants.WALLET_ENVIRONMENT)
                 .setFragmentStyle(walletFragmentStyle)
                 .setTheme(WalletConstants.THEME_LIGHT)
                 .setMode(WalletFragmentMode.SELECTION_DETAILS)
@@ -115,47 +201,7 @@ public class ConfirmationActivity extends AppCompatActivity implements Simplify.
                 .commit();
     }
 
-    @Override
-    public void onReceivedMaskedWallet(MaskedWallet maskedWallet) {
-        mMaskedWallet = maskedWallet;
-    }
-
-    @Override
-    public void onReceivedFullWallet(FullWallet fullWallet) {
-
-        // create simplify token with wallet
-        Simplify.createAndroidPayCardToken(fullWallet, new CardToken.Callback() {
-            @Override
-            public void onSuccess(CardToken cardToken) {
-                mPayButton.setEnabled(true);
-
-                Intent i = new Intent(ConfirmationActivity.this, ThankYouActivity.class);
-                i.putExtra(ThankYouActivity.EXTRA_PAGE, ThankYouActivity.PAGE_SUCCESS);
-                startActivity(i);
-            }
-
-            @Override
-            public void onError(Throwable throwable) {
-                mPayButton.setEnabled(true);
-
-                Intent i = new Intent(ConfirmationActivity.this, ThankYouActivity.class);
-                i.putExtra(ThankYouActivity.EXTRA_PAGE, ThankYouActivity.PAGE_FAIL);
-                startActivity(i);
-            }
-        });
-    }
-
-    @Override
-    public void onAndroidPayCancelled() {
-
-    }
-
-    @Override
-    public void onAndroidPayError(int errorCode) {
-        Log.i(TAG, "android pay error " + errorCode);
-    }
-
-    public void confirmPurchase() {
+    void confirmPurchase() {
 
         mPayButton.setEnabled(false);
 
@@ -167,25 +213,19 @@ public class ConfirmationActivity extends AppCompatActivity implements Simplify.
         Wallet.Payments.loadFullWallet(mGoogleApiClient, getFullWalletRequest(), Simplify.REQUEST_CODE_FULL_WALLET);
     }
 
-    private FullWalletRequest getFullWalletRequest() {
+    FullWalletRequest getFullWalletRequest() {
 
         return FullWalletRequest.newBuilder()
                 .setGoogleTransactionId(mMaskedWallet.getGoogleTransactionId())
                 .setCart(Cart.newBuilder()
-                        .setCurrencyCode(CURRENCY_CODE_USD)
-                        .setTotalPrice("10.10")
+                        .setCurrencyCode(Constants.CURRENCY_CODE_USD)
+                        .setTotalPrice("15.00")
                         .addLineItem(LineItem.newBuilder()
-                                .setCurrencyCode(CURRENCY_CODE_USD)
-                                .setDescription("Google I/O Sticker")
+                                .setCurrencyCode(Constants.CURRENCY_CODE_USD)
+                                .setDescription("Iced Coffee")
                                 .setQuantity("1")
-                                .setUnitPrice("10.00")
-                                .setTotalPrice("10.00")
-                                .build())
-                        .addLineItem(LineItem.newBuilder()
-                                .setCurrencyCode(CURRENCY_CODE_USD)
-                                .setDescription("Tax")
-                                .setRole(LineItem.Role.TAX)
-                                .setTotalPrice(".10")
+                                .setUnitPrice("15.00")
+                                .setTotalPrice("15.00")
                                 .build())
                         .build())
                 .build();

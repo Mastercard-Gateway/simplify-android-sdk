@@ -1,4 +1,1 @@
 include ':app'
-
-include ':simplify-android'
-project(':simplify-android').projectDir = new File('../sdk-android/simplify-android')
