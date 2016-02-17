@@ -11,13 +11,23 @@
 
         <!-- Add your Simplify public key here -->
         <meta-data
-            android:name="com.simplify.android.sdk.apikey"
-            android:value="YOUR_PUBLIC_KEY" />
+            android:name="com.simplify.android.sdk.apiKey"
+            android:value="YOUR_SIMPLIFY_PUBLIC_API_KEY" />
+
+        <!-- Add your Android Pay public key here -->
+        <!-- To retrieve your Android Pay public key, visit your account settings at -->
+        <!-- https://www.simplify.com/commerce/app#/account/profile -->
+        <meta-data
+            android:name="com.simplify.android.sdk.androidPayPublicKey"
+            android:value="YOUR_ANDROID_PAY_PUBLIC_KEY" />
 
         <!-- Enables the Android Pay API -->
         <meta-data
             android:name="com.google.android.gms.wallet.api.enabled"
             android:value="true" />
+        <meta-data
+            android:name="com.google.android.gms.version"
+            android:value="@integer/google_play_services_version" />
 
         <activity
             android:name=".MainActivity"
