@@ -6,15 +6,11 @@ Our Android SDK allows you to easily integrate payments into your Android app. B
 
 To import the Android SDK, include it as a dependency in your build.gradle file
 
-    compile 'com.simplify:simplify-android:2.0.3'
+    compile 'com.simplify:simplify-android:2.1.0'
 
 ## Integrate with your App
 
 Consult the [Simplify Android SDK Tutorial](https://github.com/simplifycom/simplify-android-sample/wiki/Simplify-Android-SDK-Tutorial) page for instructions on how to use the SDK within your app. 
-
-## Security
-
-For added protection (and peace of mind), all traffic between your app and Simplify is secured using [TLS 1.2](https://en.wikipedia.org/wiki/Transport_Layer_Security#TLS_1.2) and [certificate pinning](https://en.wikipedia.org/wiki/HTTP_Public_Key_Pinning).
 
 ## Support
 
