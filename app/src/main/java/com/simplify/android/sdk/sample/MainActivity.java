@@ -269,13 +269,13 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
 
         Cart cart = Cart.newBuilder()
                 .setCurrencyCode(Constants.CURRENCY_CODE_USD)
-                .setTotalPrice("15.00")
+                .setTotalPrice("1.23")
                 .addLineItem(LineItem.newBuilder()
                         .setCurrencyCode(Constants.CURRENCY_CODE_USD)
                         .setDescription("Iced Coffee")
                         .setQuantity("1")
-                        .setUnitPrice("15.00")
-                        .setTotalPrice("15.00")
+                        .setUnitPrice("1.23")
+                        .setTotalPrice("1.23")
                         .build())
                 .build();
 
@@ -285,7 +285,7 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
                 .setShippingAddressRequired(true)
                 .setCurrencyCode(Constants.CURRENCY_CODE_USD)
                 .setCart(cart)
-                .setEstimatedTotalPrice("15.00")
+                .setEstimatedTotalPrice("1.23")
                 .setPaymentMethodTokenizationParameters(parameters)
                 .build();
     }

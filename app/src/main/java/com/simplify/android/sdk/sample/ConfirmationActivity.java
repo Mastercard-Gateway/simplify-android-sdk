@@ -1,6 +1,7 @@
 package com.simplify.android.sdk.sample;
 
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -27,6 +28,12 @@ import com.google.android.gms.wallet.fragment.WalletFragmentOptions;
 import com.google.android.gms.wallet.fragment.WalletFragmentStyle;
 import com.simplify.android.sdk.CardToken;
 import com.simplify.android.sdk.Simplify;
+
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 public class ConfirmationActivity extends AppCompatActivity implements Simplify.AndroidPayCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
@@ -97,10 +104,7 @@ public class ConfirmationActivity extends AppCompatActivity implements Simplify.
             @Override
             public void onSuccess(CardToken cardToken) {
                 mPayButton.setEnabled(true);
-
-                Intent i = new Intent(ConfirmationActivity.this, ThankYouActivity.class);
-                i.putExtra(ThankYouActivity.EXTRA_PAGE, ThankYouActivity.PAGE_SUCCESS);
-                startActivity(i);
+                new PostPaymentTask().execute(cardToken);
             }
 
             @Override
@@ -219,15 +223,79 @@ public class ConfirmationActivity extends AppCompatActivity implements Simplify.
                 .setGoogleTransactionId(mMaskedWallet.getGoogleTransactionId())
                 .setCart(Cart.newBuilder()
                         .setCurrencyCode(Constants.CURRENCY_CODE_USD)
-                        .setTotalPrice("15.00")
+                        .setTotalPrice("1.23")
                         .addLineItem(LineItem.newBuilder()
                                 .setCurrencyCode(Constants.CURRENCY_CODE_USD)
                                 .setDescription("Iced Coffee")
                                 .setQuantity("1")
-                                .setUnitPrice("15.00")
-                                .setTotalPrice("15.00")
+                                .setUnitPrice("1.23")
+                                .setTotalPrice("1.23")
                                 .build())
                         .build())
                 .build();
+    }
+
+
+    class PostPaymentTask extends AsyncTask<CardToken, Void, Boolean> {
+
+        @Override
+        protected Boolean doInBackground(CardToken... params) {
+
+
+            URL url = null;
+            HttpURLConnection con = null;
+            try {
+                url = new URL("https://android-pay-test.herokuapp.com/charge.php");
+                con = (HttpURLConnection) url.openConnection();
+                //add reuqest header
+                con.setRequestMethod("POST");
+                con.setRequestProperty("User-Agent", "Android");
+                con.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
+
+                String urlParameters = "simplifyToken="+params[0].getId()+"&amount=123";
+
+                // Send post request
+                con.setDoOutput(true);
+                DataOutputStream wr = new DataOutputStream(con.getOutputStream());
+                wr.writeBytes(urlParameters);
+                wr.flush();
+                wr.close();
+
+                int responseCode = con.getResponseCode();
+                System.out.println("\nSending 'POST' request to URL : " + url);
+                System.out.println("Post parameters : " + urlParameters);
+                System.out.println("Response Code : " + responseCode);
+
+                BufferedReader in = new BufferedReader(
+                        new InputStreamReader(con.getInputStream()));
+                String inputLine;
+                StringBuffer response = new StringBuffer();
+
+                while ((inputLine = in.readLine()) != null) {
+                    response.append(inputLine);
+                }
+                in.close();
+                //print result
+                System.out.println(response.toString());
+                //
+
+                return true;
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            } finally {
+                con.disconnect();
+            }
+        }
+
+        @Override
+        protected void onPostExecute(Boolean aBoolean) {
+            super.onPostExecute(aBoolean);
+
+
+            Intent i = new Intent(ConfirmationActivity.this, ThankYouActivity.class);
+            i.putExtra(ThankYouActivity.EXTRA_PAGE, ThankYouActivity.PAGE_SUCCESS);
+            startActivity(i);
+        }
     }
 }
