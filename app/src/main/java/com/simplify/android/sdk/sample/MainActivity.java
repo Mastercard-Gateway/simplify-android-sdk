@@ -42,6 +42,7 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
     GoogleApiClient mGoogleApiClient;
     CardEditor mCardEditor;
     Button mPayButton;
+    Simplify simplify;
 
 
     //---------------------------------------------
@@ -61,7 +62,7 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
         super.onStart();
 
         // register Android Pay callback
-        Simplify.addAndroidPayCallback(this);
+        simplify.addAndroidPayCallback(this);
 
         // connect to google api client
         mGoogleApiClient.connect();
@@ -73,7 +74,7 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
         mGoogleApiClient.disconnect();
 
         // remove Android Pay callback
-        Simplify.removeAndroidPayCallback(this);
+        simplify.removeAndroidPayCallback(this);
 
         super.onStop();
     }
@@ -81,7 +82,7 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         // let the Simplify SDK marshall out the android pay activity results
-        if (Simplify.handleAndroidPayResult(requestCode, resultCode, data)) {
+        if (simplify.handleAndroidPayResult(requestCode, resultCode, data)) {
             return;
         }
 
@@ -141,6 +142,8 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
     //---------------------------------------------
 
     void init() {
+
+        simplify = ((SimplifyApplication) getApplication()).getSimplify();
 
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
@@ -235,7 +238,7 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
 
         Card card = mCardEditor.getCard();
 
-        Simplify.createCardToken(card, new CardToken.Callback() {
+        simplify.createCardToken(card, new CardToken.Callback() {
             @Override
             public void onSuccess(CardToken cardToken) {
                 mPayButton.setEnabled(true);
@@ -264,18 +267,18 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
         PaymentMethodTokenizationParameters parameters =
                 PaymentMethodTokenizationParameters.newBuilder()
                         .setPaymentMethodTokenizationType(PaymentMethodTokenizationType.NETWORK_TOKEN)
-                        .addParameter("publicKey", ((SimplifyApplication) getApplication()).getAndroidPayPublicKey())
+                        .addParameter("publicKey", simplify.getAndroidPayPublicKey())
                         .build();
 
         Cart cart = Cart.newBuilder()
                 .setCurrencyCode(Constants.CURRENCY_CODE_USD)
-                .setTotalPrice("1.23")
+                .setTotalPrice("15.00")
                 .addLineItem(LineItem.newBuilder()
                         .setCurrencyCode(Constants.CURRENCY_CODE_USD)
                         .setDescription("Iced Coffee")
                         .setQuantity("1")
-                        .setUnitPrice("1.23")
-                        .setTotalPrice("1.23")
+                        .setUnitPrice("15.00")
+                        .setTotalPrice("15.00")
                         .build())
                 .build();
 
@@ -285,7 +288,7 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
                 .setShippingAddressRequired(true)
                 .setCurrencyCode(Constants.CURRENCY_CODE_USD)
                 .setCart(cart)
-                .setEstimatedTotalPrice("1.23")
+                .setEstimatedTotalPrice("15.00")
                 .setPaymentMethodTokenizationParameters(parameters)
                 .build();
     }

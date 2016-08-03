@@ -8,29 +8,37 @@ import com.simplify.android.sdk.Simplify;
 
 public class SimplifyApplication extends Application {
 
-    String mAndroidPayPublicKey;
+    Simplify simplify;
+
 
     @Override
     public void onCreate() {
         super.onCreate();
 
+        simplify = new Simplify();
+
         // init Simplify SDK with public api key stored in metadata
         try {
             Bundle bundle = getPackageManager().getApplicationInfo(getPackageName(), PackageManager.GET_META_DATA).metaData;
+
+            // get simplify api key
             String apiKey = bundle.getString("com.simplify.android.sdk.apiKey", null);
             if (apiKey != null) {
-                Simplify.init(apiKey);
+                simplify.setApiKey(apiKey);
             }
 
             // get android pay public key
-            mAndroidPayPublicKey = bundle.getString("com.simplify.android.sdk.androidPayPublicKey", null);
+            String androidPayPublicKey = bundle.getString("com.simplify.android.sdk.androidPayPublicKey", null);
+            if (androidPayPublicKey != null) {
+                simplify.setAndroidPayPublicKey(androidPayPublicKey);
+            }
 
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    String getAndroidPayPublicKey() {
-        return mAndroidPayPublicKey;
+    Simplify getSimplify() {
+        return simplify;
     }
 }

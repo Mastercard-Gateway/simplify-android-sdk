@@ -42,6 +42,7 @@ public class ConfirmationActivity extends AppCompatActivity implements Simplify.
     GoogleApiClient mGoogleApiClient;
     MaskedWallet mMaskedWallet;
     Button mPayButton;
+    Simplify simplify;
 
 
     //---------------------------------------------
@@ -62,14 +63,14 @@ public class ConfirmationActivity extends AppCompatActivity implements Simplify.
     protected void onStart() {
         super.onStart();
 
-        Simplify.addAndroidPayCallback(this);
+        simplify.addAndroidPayCallback(this);
         mGoogleApiClient.connect();
     }
 
     @Override
     protected void onStop() {
         mGoogleApiClient.disconnect();
-        Simplify.removeAndroidPayCallback(this);
+        simplify.removeAndroidPayCallback(this);
 
         super.onStop();
     }
@@ -77,7 +78,7 @@ public class ConfirmationActivity extends AppCompatActivity implements Simplify.
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         // let the Simplify SDK marshall out the android pay activity results
-        if (Simplify.handleAndroidPayResult(requestCode, resultCode, data)) {
+        if (simplify.handleAndroidPayResult(requestCode, resultCode, data)) {
             return;
         }
 
@@ -97,10 +98,8 @@ public class ConfirmationActivity extends AppCompatActivity implements Simplify.
     @Override
     public void onReceivedFullWallet(FullWallet fullWallet) {
 
-        String publicKey = ((SimplifyApplication) getApplication()).getAndroidPayPublicKey();
-
         // create simplify token with wallet
-        Simplify.createAndroidPayCardToken(fullWallet, publicKey, new CardToken.Callback() {
+        simplify.createAndroidPayCardToken(fullWallet, new CardToken.Callback() {
             @Override
             public void onSuccess(CardToken cardToken) {
                 mPayButton.setEnabled(true);
@@ -156,6 +155,8 @@ public class ConfirmationActivity extends AppCompatActivity implements Simplify.
     //---------------------------------------------
 
     void init() {
+
+        simplify = ((SimplifyApplication) getApplication()).getSimplify();
 
         //google api client required to request full wallet
         mGoogleApiClient = new GoogleApiClient.Builder(this)
@@ -223,13 +224,13 @@ public class ConfirmationActivity extends AppCompatActivity implements Simplify.
                 .setGoogleTransactionId(mMaskedWallet.getGoogleTransactionId())
                 .setCart(Cart.newBuilder()
                         .setCurrencyCode(Constants.CURRENCY_CODE_USD)
-                        .setTotalPrice("1.23")
+                        .setTotalPrice("15.00")
                         .addLineItem(LineItem.newBuilder()
                                 .setCurrencyCode(Constants.CURRENCY_CODE_USD)
                                 .setDescription("Iced Coffee")
                                 .setQuantity("1")
-                                .setUnitPrice("1.23")
-                                .setTotalPrice("1.23")
+                                .setUnitPrice("15.00")
+                                .setTotalPrice("15.00")
                                 .build())
                         .build())
                 .build();
@@ -246,45 +247,46 @@ public class ConfirmationActivity extends AppCompatActivity implements Simplify.
             HttpURLConnection con = null;
             try {
                 url = new URL("https://android-pay-test.herokuapp.com/charge.php");
+
+                // build connection
                 con = (HttpURLConnection) url.openConnection();
-                //add reuqest header
                 con.setRequestMethod("POST");
                 con.setRequestProperty("User-Agent", "Android");
                 con.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
 
-                String urlParameters = "simplifyToken="+params[0].getId()+"&amount=123";
+                String postData = "simplifyToken="+params[0].getId()+"&amount=1500";
 
-                // Send post request
+                // send post request
                 con.setDoOutput(true);
                 DataOutputStream wr = new DataOutputStream(con.getOutputStream());
-                wr.writeBytes(urlParameters);
+                wr.writeBytes(postData);
                 wr.flush();
                 wr.close();
 
                 int responseCode = con.getResponseCode();
-                System.out.println("\nSending 'POST' request to URL : " + url);
-                System.out.println("Post parameters : " + urlParameters);
-                System.out.println("Response Code : " + responseCode);
+                Log.i(TAG, "Sending 'POST' request to URL: " + url);
+                Log.i(TAG, "Data: " + postData);
+                Log.i(TAG, "Response code: " + responseCode);
 
-                BufferedReader in = new BufferedReader(
-                        new InputStreamReader(con.getInputStream()));
+                BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+
                 String inputLine;
-                StringBuffer response = new StringBuffer();
-
+                StringBuilder response = new StringBuilder();
                 while ((inputLine = in.readLine()) != null) {
                     response.append(inputLine);
                 }
                 in.close();
-                //print result
-                System.out.println(response.toString());
-                //
+
+                Log.i(TAG, response.toString());
 
                 return true;
             } catch (Exception e) {
                 e.printStackTrace();
                 return false;
             } finally {
-                con.disconnect();
+                if (con != null) {
+                    con.disconnect();
+                }
             }
         }
 
@@ -292,9 +294,8 @@ public class ConfirmationActivity extends AppCompatActivity implements Simplify.
         protected void onPostExecute(Boolean aBoolean) {
             super.onPostExecute(aBoolean);
 
-
             Intent i = new Intent(ConfirmationActivity.this, ThankYouActivity.class);
-            i.putExtra(ThankYouActivity.EXTRA_PAGE, ThankYouActivity.PAGE_SUCCESS);
+            i.putExtra(ThankYouActivity.EXTRA_PAGE, aBoolean ? ThankYouActivity.PAGE_SUCCESS : ThankYouActivity.PAGE_FAIL);
             startActivity(i);
         }
     }
