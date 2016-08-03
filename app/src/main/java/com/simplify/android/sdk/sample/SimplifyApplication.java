@@ -21,13 +21,13 @@ public class SimplifyApplication extends Application {
         try {
             Bundle bundle = getPackageManager().getApplicationInfo(getPackageName(), PackageManager.GET_META_DATA).metaData;
 
-            // get simplify api key
+            // init simplify api key
             String apiKey = bundle.getString("com.simplify.android.sdk.apiKey", null);
             if (apiKey != null) {
                 simplify.setApiKey(apiKey);
             }
 
-            // get android pay public key
+            // init android pay public key
             String androidPayPublicKey = bundle.getString("com.simplify.android.sdk.androidPayPublicKey", null);
             if (androidPayPublicKey != null) {
                 simplify.setAndroidPayPublicKey(androidPayPublicKey);

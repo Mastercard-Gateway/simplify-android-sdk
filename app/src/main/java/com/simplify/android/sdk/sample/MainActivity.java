@@ -241,11 +241,13 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
         simplify.createCardToken(card, new CardToken.Callback() {
             @Override
             public void onSuccess(CardToken cardToken) {
-                mPayButton.setEnabled(true);
+//                mPayButton.setEnabled(true);
 
-                Intent i = new Intent(MainActivity.this, ThankYouActivity.class);
-                i.putExtra(ThankYouActivity.EXTRA_PAGE, ThankYouActivity.PAGE_SUCCESS);
-                startActivity(i);
+//                Intent i = new Intent(MainActivity.this, ThankYouActivity.class);
+//                i.putExtra(ThankYouActivity.EXTRA_PAGE, ThankYouActivity.PAGE_SUCCESS);
+//                startActivity(i);
+
+                new PostPaymentTask(MainActivity.this, "1500").execute(cardToken);
             }
 
             @Override
