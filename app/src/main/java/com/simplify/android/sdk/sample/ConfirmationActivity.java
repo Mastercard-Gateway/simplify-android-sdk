@@ -9,6 +9,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -35,6 +36,7 @@ public class ConfirmationActivity extends AppCompatActivity implements Simplify.
     GoogleApiClient mGoogleApiClient;
     MaskedWallet mMaskedWallet;
     Button mPayButton;
+    Simplify simplify;
 
 
     //---------------------------------------------
@@ -55,14 +57,12 @@ public class ConfirmationActivity extends AppCompatActivity implements Simplify.
     protected void onStart() {
         super.onStart();
 
-        Simplify.addAndroidPayCallback(this);
         mGoogleApiClient.connect();
     }
 
     @Override
     protected void onStop() {
         mGoogleApiClient.disconnect();
-        Simplify.removeAndroidPayCallback(this);
 
         super.onStop();
     }
@@ -70,7 +70,7 @@ public class ConfirmationActivity extends AppCompatActivity implements Simplify.
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         // let the Simplify SDK marshall out the android pay activity results
-        if (Simplify.handleAndroidPayResult(requestCode, resultCode, data)) {
+        if (simplify.handleAndroidPayResult(requestCode, resultCode, data, this)) {
             return;
         }
 
@@ -90,17 +90,12 @@ public class ConfirmationActivity extends AppCompatActivity implements Simplify.
     @Override
     public void onReceivedFullWallet(FullWallet fullWallet) {
 
-        String publicKey = ((SimplifyApplication) getApplication()).getAndroidPayPublicKey();
-
         // create simplify token with wallet
-        Simplify.createAndroidPayCardToken(fullWallet, publicKey, new CardToken.Callback() {
+        simplify.createAndroidPayCardToken(fullWallet, new CardToken.Callback() {
             @Override
             public void onSuccess(CardToken cardToken) {
                 mPayButton.setEnabled(true);
-
-                Intent i = new Intent(ConfirmationActivity.this, ThankYouActivity.class);
-                i.putExtra(ThankYouActivity.EXTRA_PAGE, ThankYouActivity.PAGE_SUCCESS);
-                startActivity(i);
+                new PostPaymentTask(ConfirmationActivity.this, Constants.AMOUNT.replace(".", "")).execute(cardToken);
             }
 
             @Override
@@ -153,6 +148,8 @@ public class ConfirmationActivity extends AppCompatActivity implements Simplify.
 
     void init() {
 
+        simplify = ((SimplifyApplication) getApplication()).getSimplify();
+
         //google api client required to request full wallet
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
@@ -162,6 +159,9 @@ public class ConfirmationActivity extends AppCompatActivity implements Simplify.
                         .setTheme(WalletConstants.THEME_LIGHT)
                         .build())
                 .build();
+
+        TextView amountView = (TextView) findViewById(R.id.amount);
+        amountView.setText(Constants.AMOUNT);
 
         // init pay button
         mPayButton = (Button) findViewById(R.id.btn_pay);
@@ -218,14 +218,14 @@ public class ConfirmationActivity extends AppCompatActivity implements Simplify.
         return FullWalletRequest.newBuilder()
                 .setGoogleTransactionId(mMaskedWallet.getGoogleTransactionId())
                 .setCart(Cart.newBuilder()
-                        .setCurrencyCode(Constants.CURRENCY_CODE_USD)
-                        .setTotalPrice("15.00")
+                        .setCurrencyCode(Constants.CURRENCY_CODE)
+                        .setTotalPrice(Constants.AMOUNT)
                         .addLineItem(LineItem.newBuilder()
-                                .setCurrencyCode(Constants.CURRENCY_CODE_USD)
+                                .setCurrencyCode(Constants.CURRENCY_CODE)
                                 .setDescription("Iced Coffee")
                                 .setQuantity("1")
-                                .setUnitPrice("15.00")
-                                .setTotalPrice("15.00")
+                                .setUnitPrice(Constants.AMOUNT)
+                                .setTotalPrice(Constants.AMOUNT)
                                 .build())
                         .build())
                 .build();

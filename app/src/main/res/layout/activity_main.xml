@@ -16,7 +16,7 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            auto:theme="@style/Toolbar"
+            android:theme="@style/Toolbar"
             auto:title="Checkout"/>
 
     </android.support.design.widget.AppBarLayout>
