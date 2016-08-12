@@ -94,8 +94,14 @@ public class ConfirmationActivity extends AppCompatActivity implements Simplify.
         simplify.createAndroidPayCardToken(fullWallet, new CardToken.Callback() {
             @Override
             public void onSuccess(CardToken cardToken) {
+
+                // TODO Here is where you would send the token ID and payment information back to your server for processing...
+
                 mPayButton.setEnabled(true);
-                new PostPaymentTask(ConfirmationActivity.this, Constants.AMOUNT.replace(".", "")).execute(cardToken);
+
+                Intent i = new Intent(ConfirmationActivity.this, ThankYouActivity.class);
+                i.putExtra(ThankYouActivity.EXTRA_PAGE, ThankYouActivity.PAGE_SUCCESS);
+                startActivity(i);
             }
 
             @Override
