@@ -9,6 +9,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.TextView;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.BooleanResult;
@@ -16,6 +17,7 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.wallet.Cart;
 import com.google.android.gms.wallet.FullWallet;
+import com.google.android.gms.wallet.IsReadyToPayRequest;
 import com.google.android.gms.wallet.LineItem;
 import com.google.android.gms.wallet.MaskedWallet;
 import com.google.android.gms.wallet.MaskedWalletRequest;
@@ -42,6 +44,7 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
     GoogleApiClient mGoogleApiClient;
     CardEditor mCardEditor;
     Button mPayButton;
+    Simplify simplify;
 
 
     //---------------------------------------------
@@ -60,9 +63,6 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
     protected void onStart() {
         super.onStart();
 
-        // register Android Pay callback
-        Simplify.addAndroidPayCallback(this);
-
         // connect to google api client
         mGoogleApiClient.connect();
     }
@@ -72,16 +72,13 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
         // disconnect from google api client
         mGoogleApiClient.disconnect();
 
-        // remove Android Pay callback
-        Simplify.removeAndroidPayCallback(this);
-
         super.onStop();
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         // let the Simplify SDK marshall out the android pay activity results
-        if (Simplify.handleAndroidPayResult(requestCode, resultCode, data)) {
+        if (simplify.handleAndroidPayResult(requestCode, resultCode, data, this)) {
             return;
         }
 
@@ -142,6 +139,8 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
 
     void init() {
 
+        simplify = ((SimplifyApplication) getApplication()).getSimplify();
+
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
@@ -150,6 +149,9 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
                         .setTheme(WalletConstants.THEME_LIGHT)
                         .build())
                 .build();
+
+        TextView amountView = (TextView) findViewById(R.id.amount);
+        amountView.setText(Constants.AMOUNT);
 
         mPayButton = (Button) findViewById(R.id.btnPay);
         mPayButton.setEnabled(false);
@@ -168,7 +170,14 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
             }
         });
 
-        Wallet.Payments.isReadyToPay(mGoogleApiClient)
+        IsReadyToPayRequest req = IsReadyToPayRequest.newBuilder()
+                .addAllowedCardNetwork(WalletConstants.CardNetwork.MASTERCARD)
+                .addAllowedCardNetwork(WalletConstants.CardNetwork.VISA)
+                .addAllowedCardNetwork(WalletConstants.CardNetwork.AMEX)
+                .addAllowedCardNetwork(WalletConstants.CardNetwork.DISCOVER)
+                .build();
+
+        Wallet.Payments.isReadyToPay(mGoogleApiClient, req)
                 .setResultCallback(new ResultCallback<BooleanResult>() {
                     @Override
                     public void onResult(@NonNull BooleanResult booleanResult) {
@@ -235,9 +244,12 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
 
         Card card = mCardEditor.getCard();
 
-        Simplify.createCardToken(card, new CardToken.Callback() {
+        simplify.createCardToken(card, new CardToken.Callback() {
             @Override
             public void onSuccess(CardToken cardToken) {
+
+                // TODO Here is where you would send the token ID and payment information back to your server for processing...
+
                 mPayButton.setEnabled(true);
 
                 Intent i = new Intent(MainActivity.this, ThankYouActivity.class);
@@ -264,18 +276,18 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
         PaymentMethodTokenizationParameters parameters =
                 PaymentMethodTokenizationParameters.newBuilder()
                         .setPaymentMethodTokenizationType(PaymentMethodTokenizationType.NETWORK_TOKEN)
-                        .addParameter("publicKey", ((SimplifyApplication) getApplication()).getAndroidPayPublicKey())
+                        .addParameter("publicKey", simplify.getAndroidPayPublicKey())
                         .build();
 
         Cart cart = Cart.newBuilder()
-                .setCurrencyCode(Constants.CURRENCY_CODE_USD)
-                .setTotalPrice("15.00")
+                .setCurrencyCode(Constants.CURRENCY_CODE)
+                .setTotalPrice(Constants.AMOUNT)
                 .addLineItem(LineItem.newBuilder()
-                        .setCurrencyCode(Constants.CURRENCY_CODE_USD)
+                        .setCurrencyCode(Constants.CURRENCY_CODE)
                         .setDescription("Iced Coffee")
                         .setQuantity("1")
-                        .setUnitPrice("15.00")
-                        .setTotalPrice("15.00")
+                        .setUnitPrice(Constants.AMOUNT)
+                        .setTotalPrice(Constants.AMOUNT)
                         .build())
                 .build();
 
@@ -283,9 +295,9 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
                 .setMerchantName("Overpriced Coffee Shop")
                 .setPhoneNumberRequired(true)
                 .setShippingAddressRequired(true)
-                .setCurrencyCode(Constants.CURRENCY_CODE_USD)
+                .setCurrencyCode(Constants.CURRENCY_CODE)
                 .setCart(cart)
-                .setEstimatedTotalPrice("15.00")
+                .setEstimatedTotalPrice(Constants.AMOUNT)
                 .setPaymentMethodTokenizationParameters(parameters)
                 .build();
     }
