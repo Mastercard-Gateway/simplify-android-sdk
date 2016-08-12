@@ -16,7 +16,7 @@ import java.net.URL;
 public class PostPaymentTask extends AsyncTask<CardToken, Void, Boolean> {
 
     static final String TAG = PostPaymentTask.class.getSimpleName();
-    static final String HEROKU_URL = "https://android-pay-test.herokuapp.com/charge.php";
+    static final String PAYMENT_URL = "https://android-pay-pps-test.herokuapp.com/charge.php";
 
     Context context;
     String amount;
@@ -28,12 +28,11 @@ public class PostPaymentTask extends AsyncTask<CardToken, Void, Boolean> {
 
     @Override
     protected Boolean doInBackground(CardToken... params) {
-
-
+        
         URL url = null;
         HttpURLConnection con = null;
         try {
-            url = new URL(HEROKU_URL);
+            url = new URL(PAYMENT_URL);
 
             // build connection
             con = (HttpURLConnection) url.openConnection();
@@ -41,7 +40,7 @@ public class PostPaymentTask extends AsyncTask<CardToken, Void, Boolean> {
             con.setRequestProperty("User-Agent", "Android");
             con.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
 
-            String postData = "simplifyToken="+params[0].getId()+"&amount=" + amount;
+            String postData = "simplifyToken="+params[0].getId()+"&amount=" + amount + "&currency=" + Constants.CURRENCY_CODE;
 
             // send post request
             con.setDoOutput(true);

@@ -9,6 +9,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -56,14 +57,12 @@ public class ConfirmationActivity extends AppCompatActivity implements Simplify.
     protected void onStart() {
         super.onStart();
 
-        simplify.addAndroidPayCallback(this);
         mGoogleApiClient.connect();
     }
 
     @Override
     protected void onStop() {
         mGoogleApiClient.disconnect();
-        simplify.removeAndroidPayCallback(this);
 
         super.onStop();
     }
@@ -71,7 +70,7 @@ public class ConfirmationActivity extends AppCompatActivity implements Simplify.
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         // let the Simplify SDK marshall out the android pay activity results
-        if (simplify.handleAndroidPayResult(requestCode, resultCode, data)) {
+        if (simplify.handleAndroidPayResult(requestCode, resultCode, data, this)) {
             return;
         }
 
@@ -96,7 +95,7 @@ public class ConfirmationActivity extends AppCompatActivity implements Simplify.
             @Override
             public void onSuccess(CardToken cardToken) {
                 mPayButton.setEnabled(true);
-                new PostPaymentTask(ConfirmationActivity.this, "1500").execute(cardToken);
+                new PostPaymentTask(ConfirmationActivity.this, Constants.AMOUNT.replace(".", "")).execute(cardToken);
             }
 
             @Override
@@ -161,6 +160,9 @@ public class ConfirmationActivity extends AppCompatActivity implements Simplify.
                         .build())
                 .build();
 
+        TextView amountView = (TextView) findViewById(R.id.amount);
+        amountView.setText(Constants.AMOUNT);
+
         // init pay button
         mPayButton = (Button) findViewById(R.id.btn_pay);
         mPayButton.setOnClickListener(new View.OnClickListener() {
@@ -216,14 +218,14 @@ public class ConfirmationActivity extends AppCompatActivity implements Simplify.
         return FullWalletRequest.newBuilder()
                 .setGoogleTransactionId(mMaskedWallet.getGoogleTransactionId())
                 .setCart(Cart.newBuilder()
-                        .setCurrencyCode(Constants.CURRENCY_CODE_USD)
-                        .setTotalPrice("15.00")
+                        .setCurrencyCode(Constants.CURRENCY_CODE)
+                        .setTotalPrice(Constants.AMOUNT)
                         .addLineItem(LineItem.newBuilder()
-                                .setCurrencyCode(Constants.CURRENCY_CODE_USD)
+                                .setCurrencyCode(Constants.CURRENCY_CODE)
                                 .setDescription("Iced Coffee")
                                 .setQuantity("1")
-                                .setUnitPrice("15.00")
-                                .setTotalPrice("15.00")
+                                .setUnitPrice(Constants.AMOUNT)
+                                .setTotalPrice(Constants.AMOUNT)
                                 .build())
                         .build())
                 .build();
