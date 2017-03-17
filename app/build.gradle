@@ -8,7 +8,7 @@ android {
         applicationId "com.simplify.android.sdk.sample"
         minSdkVersion 16
         targetSdkVersion 25
-        versionCode 13
+        versionCode 14
         versionName '3.2.0-SNAPSHOT'
     }
 
