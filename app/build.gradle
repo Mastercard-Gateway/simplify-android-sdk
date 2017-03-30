@@ -8,8 +8,8 @@ android {
         applicationId "com.simplify.android.sdk.sample"
         minSdkVersion 16
         targetSdkVersion 25
-        versionCode 13
-        versionName '3.1.1'
+        versionCode 15
+        versionName '3.2.0'
     }
 
     buildTypes {
@@ -24,7 +24,7 @@ dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile 'com.android.support:appcompat-v7:25.3.0'
     compile 'com.android.support:design:25.3.0'
-    compile 'com.google.android.gms:play-services-wallet:10.2.0'
+    compile 'com.google.android.gms:play-services-wallet:10.2.1'
 
-    compile 'com.simplify:simplify-android:3.1.1'
+    compile 'com.simplify:simplify-android:3.2.0'
 }

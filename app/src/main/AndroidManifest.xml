@@ -9,17 +9,17 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
 
-        <!-- Add your Simplify public key here -->
+        <!-- Add your live Simplify public key here -->
         <meta-data
             android:name="com.simplify.android.sdk.apiKey"
-            android:value="YOUR_SIMPLIFY_PUBLIC_API_KEY" />
+            android:value="lvpb_MmNlNjE3MjctNmRmYy00NmY4LWI0MzEtNTVhY2RhYjU3Njcx" />
 
         <!-- Add your Android Pay public key here -->
         <!-- To retrieve your Android Pay public key, visit your account settings at -->
         <!-- https://www.simplify.com/commerce/app#/account/profile -->
         <meta-data
             android:name="com.simplify.android.sdk.androidPayPublicKey"
-            android:value="YOUR_ANDROID_PAY_PUBLIC_KEY" />
+            android:value="BOjsfmPb3gOPnIhKOfyKH3Kxa8XX7nzynLbRkL30oA6z2gFfKPLjCeqTmyjPe41PhJ9Hh64HP/BukqUn4DGNV3Q=" />
 
         <!-- Enables the Android Pay API -->
         <meta-data
