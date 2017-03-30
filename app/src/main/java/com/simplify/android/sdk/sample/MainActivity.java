@@ -9,6 +9,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -45,6 +46,7 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
     CardEditor mCardEditor;
     Button mPayButton;
     Simplify simplify;
+    ProgressBar mProgressBar;
 
 
     //---------------------------------------------
@@ -162,6 +164,8 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
             }
         });
 
+        mProgressBar = (ProgressBar) findViewById(R.id.progress_bar);
+
         mCardEditor = (CardEditor) findViewById(R.id.card_editor);
         mCardEditor.addOnStateChangedListener(new CardEditor.OnStateChangedListener() {
             @Override
@@ -240,6 +244,7 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
 
     void requestCardToken() {
 
+        mProgressBar.setVisibility(View.VISIBLE);
         mPayButton.setEnabled(false);
 
         Card card = mCardEditor.getCard();
@@ -250,6 +255,7 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
 
                 // TODO Here is where you would send the token ID and payment information back to your server for processing...
 
+                mProgressBar.setVisibility(View.GONE);
                 mPayButton.setEnabled(true);
 
                 Intent i = new Intent(MainActivity.this, ThankYouActivity.class);
@@ -261,6 +267,7 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
             public void onError(Throwable throwable) {
                 throwable.printStackTrace();
 
+                mProgressBar.setVisibility(View.GONE);
                 mPayButton.setEnabled(true);
 
                 Intent i = new Intent(MainActivity.this, ThankYouActivity.class);

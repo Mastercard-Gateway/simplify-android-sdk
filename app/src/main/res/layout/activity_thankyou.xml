@@ -12,10 +12,11 @@
         android:background="@android:color/white">
 
         <ImageView
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_centerHorizontal="true"
             android:contentDescription="full coffee cup"
+            android:scaleType="centerCrop"
             android:src="@drawable/coffee_cup"/>
 
         <LinearLayout
@@ -23,7 +24,7 @@
             android:layout_height="wrap_content"
             android:gravity="center"
             android:orientation="vertical"
-            android:layout_marginTop="280dp">
+            android:layout_marginTop="300dp">
 
             <TextView
                 android:layout_width="wrap_content"

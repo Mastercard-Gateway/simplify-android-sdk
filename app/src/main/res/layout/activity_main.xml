@@ -33,7 +33,7 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:orientation="vertical"
-        android:padding="15dp"
+        android:padding="16dp"
         android:background="@android:color/white">
 
         <TextView
@@ -49,6 +49,20 @@
             android:layout_height="wrap_content"
             auto:enabled="true"
             auto:iconColor="@color/icon"/>
+
+        <android.support.v4.widget.Space
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:layout_weight="1"/>
+
+        <ProgressBar
+            android:id="@+id/progress_bar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:visibility="gone"
+            android:indeterminate="true"
+            tools:visibility="visible"/>
 
     </LinearLayout>
 

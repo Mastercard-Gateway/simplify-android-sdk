@@ -9,6 +9,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -37,6 +38,7 @@ public class ConfirmationActivity extends AppCompatActivity implements Simplify.
     MaskedWallet mMaskedWallet;
     Button mPayButton;
     Simplify simplify;
+    ProgressBar mProgressBar;
 
 
     //---------------------------------------------
@@ -89,6 +91,7 @@ public class ConfirmationActivity extends AppCompatActivity implements Simplify.
 
     @Override
     public void onReceivedFullWallet(FullWallet fullWallet) {
+        mProgressBar.setVisibility(View.VISIBLE);
 
         // create simplify token with wallet
         simplify.createAndroidPayCardToken(fullWallet, new CardToken.Callback() {
@@ -97,17 +100,18 @@ public class ConfirmationActivity extends AppCompatActivity implements Simplify.
 
                 // TODO Here is where you would send the token ID and payment information back to your server for processing...
 
-                mPayButton.setEnabled(true);
-
                 Intent i = new Intent(ConfirmationActivity.this, ThankYouActivity.class);
                 i.putExtra(ThankYouActivity.EXTRA_PAGE, ThankYouActivity.PAGE_SUCCESS);
                 startActivity(i);
+
+                finish();
             }
 
             @Override
             public void onError(Throwable throwable) {
                 throwable.printStackTrace();
 
+                mProgressBar.setVisibility(View.GONE);
                 mPayButton.setEnabled(true);
 
                 Intent i = new Intent(ConfirmationActivity.this, ThankYouActivity.class);
@@ -177,6 +181,8 @@ public class ConfirmationActivity extends AppCompatActivity implements Simplify.
                 confirmPurchase();
             }
         });
+
+        mProgressBar = (ProgressBar) findViewById(R.id.progress_bar);
 
         //fragment style for confirmation screen
         WalletFragmentStyle walletFragmentStyle = new WalletFragmentStyle()
