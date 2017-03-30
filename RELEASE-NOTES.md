@@ -1,5 +1,10 @@
 # Release Notes
 
+### 3.2.0
+* Targeting latest release of the Simplify SDK
+* Added progress indicator
+* Small improvements
+
 ### 3.1.1
 * Targeting latest release of the Simplify SDK
 * Fixed readme
