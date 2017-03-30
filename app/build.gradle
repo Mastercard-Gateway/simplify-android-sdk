@@ -8,8 +8,8 @@ android {
         applicationId "com.simplify.android.sdk.sample"
         minSdkVersion 16
         targetSdkVersion 25
-        versionCode 15
-        versionName '3.2.0'
+        versionCode 16
+        versionName '3.3.0-SNAPSHOT'
     }
 
     buildTypes {
