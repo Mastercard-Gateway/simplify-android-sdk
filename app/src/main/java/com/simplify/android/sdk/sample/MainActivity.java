@@ -188,19 +188,19 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
                         if (booleanResult.getStatus().isSuccess()) {
                             if (booleanResult.getValue()) {
                                 Log.i(TAG, "Android Pay is ready");
-                                showGoogleBuyButton();
+                                showAndroidPayButton();
 
                                 return;
                             }
                         }
 
                         Log.i(TAG, "Android Pay not ready");
-                        hideGoogleBuyButton();
+                        hideAndroidPayButton();
                     }
                 });
     }
 
-    void showGoogleBuyButton() {
+    void showAndroidPayButton() {
 
         findViewById(R.id.buy_button_layout).setVisibility(View.VISIBLE);
 
@@ -238,7 +238,7 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
 
     }
 
-    void hideGoogleBuyButton() {
+    void hideAndroidPayButton() {
         findViewById(R.id.buy_button_layout).setVisibility(View.GONE);
     }
 
