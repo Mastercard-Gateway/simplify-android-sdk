@@ -2,6 +2,7 @@ package com.simplify.android.sdk;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Base64;
@@ -405,7 +406,7 @@ public class Simplify {
         }
         c.setConnectTimeout(Constants.CONNECTION_TIMEOUT);
         c.setReadTimeout(Constants.SOCKET_TIMEOUT);
-        c.setRequestProperty("User-Agent", Constants.USER_AGENT);
+        c.setRequestProperty("User-Agent", buildUserAgent());
         c.setRequestProperty("Content-Type", "application/json");
         c.setDoInput(true);
         c.setDoOutput(true);
@@ -431,6 +432,10 @@ public class Simplify {
         logResponse(tag, response);
 
         return response;
+    }
+
+    private String buildUserAgent() {
+        return Constants.USER_AGENT + " (API " + Build.VERSION.SDK_INT + "; Device:" + Build.DEVICE + ")";
     }
 
     TrustManager[] createTrustManagers() {
