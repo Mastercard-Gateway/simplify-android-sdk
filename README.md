@@ -1,16 +1,19 @@
 # Simplify Android SDK
 
+[ ![Download](https://api.bintray.com/packages/simplify/Android/simplify-android/images/download.svg) ](https://bintray.com/simplify/Android/simplify-android/_latestVersion)
+
+
 Our Android SDK allows you to easily integrate payments into your Android app. By creating a one-time use CardToken through our SDK, you avoid the risk of handling sensitive card details on your server.
 
-## Import the Dependency [![maven-central](https://img.shields.io/maven-central/v/com.simplify/simplify-android.svg)](http://search.maven.org/#search%7Cga%7C1%7Csimplify-android)
+## Installation
 
-To import the Android SDK, include it as a dependency in your build.gradle file
+This library is hosted in the jCenter repository. To import the Android SDK, include it as a dependency in your build.gradle file. Be sure to replace `X.X.X` with the version number in the shield above.
 
-    compile 'com.simplify:simplify-android:X.X.X'
+    implementation 'com.simplify:simplify-android:X.X.X'
 
-## Integrate with your App
+## Configuration
 
-Consult the [Simplify Android SDK Tutorial](https://github.com/simplifycom/simplify-android-sample/wiki/Simplify-Android-SDK-Tutorial) page for instructions on how to use the SDK within your app. 
+Consult the [Simplify Android SDK Tutorial](https://github.com/simplifycom/simplify-android-sdk/wiki/Simplify-Android-SDK-Tutorial) page for instructions on how to use the SDK within your app.
 
 ## Support
 

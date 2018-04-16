@@ -1,0 +1,14 @@
+<resources>
+
+    <string name="simplify_card_number">Card Number</string>
+    <string name="simplify_expiry">Expiry</string>
+    <string name="simplify_cvc">CVC</string>
+    <string name="simplify_zip">ZIP</string>
+    <string name="simplify_expiration">Expiration</string>
+    <string name="simplify_invalid_card_number">Invalid card number</string>
+    <string name="simplify_invalid_expiration">Invalid expiration</string>
+    <string name="simplify_invalid_cvc">Invalid CVC</string>
+    <string name="simplify_invalid_zip">Invalid ZIP</string>
+    <string name="simplify_mm_yy">%1$s/%2$s</string>
+
+</resources>

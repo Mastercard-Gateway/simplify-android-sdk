@@ -1,0 +1,162 @@
+apply plugin: 'com.android.library'
+apply plugin: 'com.jfrog.bintray'
+apply plugin: 'maven-publish'
+
+
+android {
+    compileSdkVersion 27
+    buildToolsVersion '27.0.3'
+
+    defaultConfig {
+        minSdkVersion 16
+        targetSdkVersion 27
+        versionName libraryVersionName
+
+        consumerProguardFiles 'proguard.pro'
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    lintOptions {
+        abortOnError false
+    }
+
+    buildTypes {
+        debug
+        release
+    }
+
+    testOptions {
+        unitTests {
+            includeAndroidResources = true
+        }
+    }
+}
+
+// define an 'optional'
+configurations {
+    optional
+    implementation.extendsFrom optional
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'com.android.support:appcompat-v7:27.1.1'
+    implementation 'com.google.code.gson:gson:2.8.2'
+
+    // optional for android pay
+    optional 'com.android.support:support-v4:27.1.1'
+    optional 'com.google.android.gms:play-services-wallet:15.0.0'
+
+    // optional for rxjava
+    optional 'io.reactivex.rxjava2:rxjava:2.1.10'
+
+    testImplementation 'junit:junit:4.12'
+    testImplementation 'org.mockito:mockito-core:2.13.0'
+}
+
+task androidJavadocs(type: Javadoc) {
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+    android.libraryVariants.all { variant ->
+        if (variant.name == 'release') {
+            owner.classpath += variant.getCompileClasspath(null)
+        }
+    }
+    source = android.sourceSets.main.java.srcDirs
+    exclude '**/R.html', '**/R.*.html', '**/index.html'
+}
+
+task androidJavadocsJar(type: Jar, dependsOn: androidJavadocs) {
+    classifier = 'javadoc'
+    from androidJavadocs.destinationDir
+}
+
+task androidSourcesJar(type: Jar) {
+    classifier = 'sources'
+    from android.sourceSets.main.java.srcDirs
+}
+
+publishing {
+    publications {
+        aar(MavenPublication) {
+            groupId = 'com.simplify'
+            artifactId project.name
+            version = libraryVersionName
+
+            artifact bundleRelease
+            artifact androidJavadocsJar
+            artifact androidSourcesJar
+
+            pom.withXml {
+                def root = asNode()
+
+                // adds basic info
+                root.appendNode('name', 'Simplify Android SDK')
+                root.appendNode('description', 'The Android SDK for Simplify Commerce')
+                root.appendNode('url', 'https://www.simplify.com/commerce/docs/sdk/android')
+
+                // adds license info
+                def license = root.appendNode('licenses').appendNode('license')
+                license.appendNode('name', 'The MIT License')
+                license.appendNode('url', 'http://opensource.org/licenses/MIT')
+                license.appendNode('distribution', 'repo')
+
+                // adds source control info
+                def scm = root.appendNode('scm')
+                scm.appendNode('url', 'https://github.com/simplifycom/simplify-android-sdk')
+                scm.appendNode('connection', 'https://github.com/simplifycom/simplify-android-sdk.git')
+
+                // adds dependencies
+                def dependenciesNode = root.appendNode('dependencies')
+                configurations.implementation.allDependencies.each { dp ->
+                    if (dp.group) {
+                        def dependencyNode = dependenciesNode.appendNode('dependency')
+                        dependencyNode.appendNode('groupId', dp.group)
+                        dependencyNode.appendNode('artifactId', dp.name)
+                        dependencyNode.appendNode('version', dp.version)
+
+                        if (configurations.optional.allDependencies.contains(dp)) {
+                            dependencyNode.appendNode('optional', true)
+                        }
+                    }
+                }
+
+                // adds developer info
+                def developers = root.appendNode('developers')
+                def dev = developers.appendNode('developer')
+                dev.appendNode('id', 'nak5ive')
+                dev.appendNode('name', 'Nevada Kent')
+                dev.appendNode('email', 'nak5ive@gmail.com')
+                dev = developers.appendNode('developer')
+                dev.appendNode('id', 'rubixhacker')
+                dev.appendNode('name', 'Stewart Boling')
+                dev.appendNode('email', 'rubixhacker@gmail.com')
+                dev = developers.appendNode('developer')
+                dev.appendNode('id', 'nitinshambhu')
+                dev.appendNode('name', 'Nitin Shambhu')
+                dev.appendNode('email', 'nitinshambhu@hotmail.com')
+            }
+        }
+    }
+}
+
+
+bintray {
+    user = System.getenv('BINTRAY_USER')
+    key = System.getenv('BINTRAY_API_KEY')
+    publications = ['aar']
+    publish = true
+    pkg {
+        repo = 'Android'
+        name = 'simplify-android'
+        userOrg = 'simplify'
+        licenses = ['Apache-2.0']
+        vcsUrl = 'https://github.com/simplifycom/simplify-android-sdk.git'
+        version {
+            name = libraryVersionName
+        }
+    }
+}
