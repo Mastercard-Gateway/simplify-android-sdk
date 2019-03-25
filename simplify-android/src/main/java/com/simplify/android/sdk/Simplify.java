@@ -363,6 +363,12 @@ public class Simplify {
         // build data
         JsonObject json = new JsonObject();
         json.addProperty("key", apiKey);
+
+        // Test: adding data to see if 3DS info returned
+        json.addProperty("secure3DRequestData.amount", 100);
+        json.addProperty("secure3DRequestData.currency", "USD");
+        json.addProperty("secure3DRequestData.description", UUID.randomUUID().toString());
+
         json.add("card", new Gson().toJsonTree(card));
         String data = json.toString();
 

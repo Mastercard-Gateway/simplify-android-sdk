@@ -5,7 +5,6 @@ apply plugin: 'maven-publish'
 
 android {
     compileSdkVersion 27
-    buildToolsVersion '27.0.3'
 
     defaultConfig {
         minSdkVersion 16
@@ -86,7 +85,7 @@ publishing {
             artifactId project.name
             version = libraryVersionName
 
-            artifact bundleRelease
+            artifact bundleReleaseAar
             artifact androidJavadocsJar
             artifact androidSourcesJar
 

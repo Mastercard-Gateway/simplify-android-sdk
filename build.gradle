@@ -2,12 +2,15 @@
 
 buildscript {
     repositories {
+        maven {
+            url 'https://artifacts.mastercard.int/artifactory/maven-all'
+        }
         jcenter()
         google()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.1.1'
-        classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:4.5.2'
+        classpath 'com.android.tools.build:gradle:3.3.2'
+        classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:4.7.5'
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3'
 
         // NOTE: Do not place your application dependencies here; they belong
@@ -17,6 +20,9 @@ buildscript {
 
 allprojects {
     repositories {
+        maven {
+            url 'https://artifacts.mastercard.int/artifactory/maven-all'
+        }
         jcenter()
         google()
     }
