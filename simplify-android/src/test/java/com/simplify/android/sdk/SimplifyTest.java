@@ -217,9 +217,9 @@ public class SimplifyTest {
         Exception exception = new Exception();
 
         when(mockHandler.obtainMessage()).thenReturn(message);
-        doThrow(exception).when(simplify).executeCreateCardToken(any());
+        doThrow(exception).when(simplify).executeCreateCardToken(any(), any());
 
-        simplify.runCreateCardToken(new Card(), mockHandler);
+        simplify.runCreateCardToken(new Card(), new Secure3DRequestData(), mockHandler);
 
         assertEquals(message.obj, exception);
         verify(mockHandler).sendMessage(message);
@@ -232,9 +232,9 @@ public class SimplifyTest {
         CardToken cardToken = mock(CardToken.class);
 
         when(mockHandler.obtainMessage()).thenReturn(message);
-        doReturn(cardToken).when(simplify).executeCreateCardToken(any());
+        doReturn(cardToken).when(simplify).executeCreateCardToken(any(), any());
 
-        simplify.runCreateCardToken(new Card(), mockHandler);
+        simplify.runCreateCardToken(new Card(), new Secure3DRequestData(), mockHandler);
 
         assertEquals(message.obj, cardToken);
         verify(mockHandler).sendMessage(message);

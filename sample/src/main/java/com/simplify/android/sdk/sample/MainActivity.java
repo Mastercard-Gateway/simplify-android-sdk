@@ -34,6 +34,7 @@ import com.google.android.gms.wallet.fragment.WalletFragmentStyle;
 import com.simplify.android.sdk.Card;
 import com.simplify.android.sdk.CardEditor;
 import com.simplify.android.sdk.CardToken;
+import com.simplify.android.sdk.Secure3DRequestData;
 import com.simplify.android.sdk.Simplify;
 
 public class MainActivity extends AppCompatActivity implements Simplify.AndroidPayCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
@@ -249,7 +250,12 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
 
         Card card = mCardEditor.getCard();
 
-        simplify.createCardToken(card, new CardToken.Callback() {
+        Secure3DRequestData secure3DRequestData = new Secure3DRequestData()
+                .setAmount(100)
+                .setCurrency(Constants.CURRENCY_CODE)
+                .setDescription("Iced coffee");
+
+        simplify.createCardToken(card, secure3DRequestData, new CardToken.Callback() {
             @Override
             public void onSuccess(CardToken cardToken) {
 

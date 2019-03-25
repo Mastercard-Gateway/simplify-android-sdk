@@ -21,6 +21,7 @@ import java.io.ByteArrayInputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
@@ -98,6 +99,7 @@ public class Simplify {
 
     String apiKey;
     String androidPayPublicKey;
+    Gson gson = new Gson();
 
 
     /**
@@ -165,10 +167,20 @@ public class Simplify {
      * @param callback The callback to invoke after the request is complete
      */
     public void createCardToken(Card card, CardToken.Callback callback) {
+        createCardToken(card, null, callback);
+    }
+
+    /**
+     *
+     * @param card
+     * @param secure3DRequestData
+     * @param callback
+     */
+    public void createCardToken(Card card, Secure3DRequestData secure3DRequestData, CardToken.Callback callback) {
         // create handler on current thread
         Handler handler = new Handler(msg -> handleCreateCardTokenCallbackMessage(callback, msg.obj));
 
-        new Thread(() -> runCreateCardToken(card, handler)).start();
+        new Thread(() -> runCreateCardToken(card, secure3DRequestData, handler)).start();
     }
 
     /**
@@ -179,7 +191,17 @@ public class Simplify {
      * @return A Single of the CardToken
      */
     public Single<CardToken> createCardToken(Card card) {
-        return Single.fromCallable(() -> executeCreateCardToken(card));
+        return createCardToken(card, (Secure3DRequestData) null);
+    }
+
+    /**
+     *
+     * @param card
+     * @param secure3DRequestData
+     * @return
+     */
+    public Single<CardToken> createCardToken(Card card, Secure3DRequestData secure3DRequestData) {
+        return Single.fromCallable(() -> executeCreateCardToken(card, secure3DRequestData));
     }
 
     /**
@@ -345,10 +367,10 @@ public class Simplify {
      * @param card
      * @param handler
      */
-    void runCreateCardToken(Card card, Handler handler) {
+    void runCreateCardToken(Card card, Secure3DRequestData secure3DRequestData, Handler handler) {
         Message m = handler.obtainMessage();
         try {
-            m.obj = executeCreateCardToken(card);
+            m.obj = executeCreateCardToken(card, secure3DRequestData);
         } catch (Exception e) {
             m.obj = e;
         }
@@ -356,20 +378,20 @@ public class Simplify {
         handler.sendMessage(m);
     }
 
-    CardToken executeCreateCardToken(Card card) throws Exception {
+    CardToken executeCreateCardToken(Card card, Secure3DRequestData secure3DRequestData) throws Exception {
         // build url
         URL url = new URL(getUrl() + Constants.API_PATH_CARDTOKEN);
 
         // build data
         JsonObject json = new JsonObject();
         json.addProperty("key", apiKey);
+        json.add("card", gson.toJsonTree(card));
 
-        // Test: adding data to see if 3DS info returned
-        json.addProperty("secure3DRequestData.amount", 100);
-        json.addProperty("secure3DRequestData.currency", "USD");
-        json.addProperty("secure3DRequestData.description", UUID.randomUUID().toString());
+        // add 3DS if provided
+        if (secure3DRequestData != null) {
+            json.add("secure3DRequestData", gson.toJsonTree(secure3DRequestData));
+        }
 
-        json.add("card", new Gson().toJsonTree(card));
         String data = json.toString();
 
         // make the call
@@ -424,7 +446,7 @@ public class Simplify {
         // write data
         if (data != null) {
             OutputStream os = c.getOutputStream();
-            os.write(data.getBytes("UTF-8"));
+            os.write(data.getBytes(StandardCharsets.UTF_8));
             os.close();
         }
 
