@@ -1,14 +1,16 @@
 apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-android'
 apply plugin: 'com.jfrog.bintray'
 apply plugin: 'maven-publish'
 
 
 android {
-    compileSdkVersion 27
+    compileSdkVersion 28
 
     defaultConfig {
         minSdkVersion 19
-        targetSdkVersion 27
+        targetSdkVersion 28
         versionName libraryVersionName
 
         consumerProguardFiles 'proguard.pro'
@@ -33,6 +35,10 @@ android {
             includeAndroidResources = true
         }
     }
+
+    sourceSets {
+        main.java.srcDirs += 'src/main/kotlin'
+    }
 }
 
 // define an 'optional'
@@ -43,18 +49,20 @@ configurations {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'com.android.support:appcompat-v7:27.1.1'
+    implementation 'com.android.support:appcompat-v7:28.0.0'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+
     implementation 'com.google.code.gson:gson:2.8.2'
 
     // optional for android pay
-    optional 'com.android.support:support-v4:27.1.1'
+    optional 'com.android.support:support-v4:28.0.0'
     optional 'com.google.android.gms:play-services-wallet:15.0.0'
 
     // optional for rxjava
-    optional 'io.reactivex.rxjava2:rxjava:2.1.10'
+    optional 'io.reactivex.rxjava2:rxjava:2.2.6'
 
     testImplementation 'junit:junit:4.12'
-    testImplementation 'org.mockito:mockito-core:2.13.0'
+    testImplementation 'org.mockito:mockito-core:2.23.4'
 }
 
 task androidJavadocs(type: Javadoc) {

@@ -2,6 +2,8 @@
 -keep class com.simplify.android.sdk.Card { *; }
 -keep class com.simplify.android.sdk.CardBrand { *; }
 -keep class com.simplify.android.sdk.CardEntryMode { *; }
+-keep class com.simplify.android.sdk.Secure3DData { *; }
+-keep class com.simplify.android.sdk.Secure3DRequestData { *; }
 -keep class com.simplify.android.sdk.CardToken { *; }
 -keep class com.simplify.android.sdk.Customer { *; }
 -keep class com.simplify.android.sdk.FieldError { *; }
