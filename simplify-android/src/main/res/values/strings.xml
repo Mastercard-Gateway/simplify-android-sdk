@@ -10,5 +10,6 @@
     <string name="simplify_invalid_cvc">Invalid CVC</string>
     <string name="simplify_invalid_zip">Invalid ZIP</string>
     <string name="simplify_mm_yy">%1$s/%2$s</string>
+    <string name="simplify_3d_secure_authentication">3-D Secure Authentication</string>
 
 </resources>
