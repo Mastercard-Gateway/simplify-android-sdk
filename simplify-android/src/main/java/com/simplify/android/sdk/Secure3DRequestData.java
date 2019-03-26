@@ -1,5 +1,7 @@
 package com.simplify.android.sdk;
 
+import android.support.annotation.NonNull;
+
 /**
  *
  */
@@ -9,22 +11,19 @@ public class Secure3DRequestData {
     String currency;
     String description;
 
+
+    public Secure3DRequestData(@NonNull long amount, @NonNull String currency, @NonNull String description) {
+        this.amount = amount;
+        this.currency = currency;
+        this.description = description;
+    }
+
     /**
      *
      * @return
      */
     public long getAmount() {
         return amount;
-    }
-
-    /**
-     *
-     * @param amount
-     * @return
-     */
-    public Secure3DRequestData setAmount(long amount) {
-        this.amount = amount;
-        return this;
     }
 
     /**
@@ -37,29 +36,9 @@ public class Secure3DRequestData {
 
     /**
      *
-     * @param currency
-     * @return
-     */
-    public Secure3DRequestData setCurrency(String currency) {
-        this.currency = currency;
-        return this;
-    }
-
-    /**
-     *
      * @return
      */
     public String getDescription() {
         return description;
-    }
-
-    /**
-     *
-     * @param description
-     * @return
-     */
-    public Secure3DRequestData setDescription(String description) {
-        this.description = description;
-        return this;
     }
 }

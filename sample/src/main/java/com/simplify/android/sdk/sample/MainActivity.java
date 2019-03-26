@@ -250,10 +250,7 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
 
         Card card = mCardEditor.getCard();
 
-        Secure3DRequestData secure3DRequestData = new Secure3DRequestData()
-                .setAmount(100)
-                .setCurrency(Constants.CURRENCY_CODE)
-                .setDescription("Iced coffee");
+        Secure3DRequestData secure3DRequestData = new Secure3DRequestData(100, Constants.CURRENCY_CODE, "Iced coffee");
 
         simplify.createCardToken(card, secure3DRequestData, new CardToken.Callback() {
             @Override
