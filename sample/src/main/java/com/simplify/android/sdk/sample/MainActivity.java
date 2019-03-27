@@ -11,6 +11,7 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.BooleanResult;
@@ -34,10 +35,11 @@ import com.google.android.gms.wallet.fragment.WalletFragmentStyle;
 import com.simplify.android.sdk.Card;
 import com.simplify.android.sdk.CardEditor;
 import com.simplify.android.sdk.CardToken;
+import com.simplify.android.sdk.Secure3DData;
 import com.simplify.android.sdk.Secure3DRequestData;
 import com.simplify.android.sdk.Simplify;
 
-public class MainActivity extends AppCompatActivity implements Simplify.AndroidPayCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+public class MainActivity extends AppCompatActivity implements Simplify.AndroidPayCallback, Simplify.Secure3DCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     static final String TAG = MainActivity.class.getSimpleName();
 
@@ -83,6 +85,8 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
         // let the Simplify SDK marshall out the android pay activity results
         if (simplify.handleAndroidPayResult(requestCode, resultCode, data, this)) {
             return;
+        } else if (Simplify.handle3DSResult(requestCode, resultCode, data, this)) {
+            return;
         }
 
         super.onActivityResult(requestCode, resultCode, data);
@@ -114,6 +118,46 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
     @Override
     public void onAndroidPayError(int errorCode) {
         Log.e(TAG, "Android Pay error code: " + errorCode);
+    }
+
+
+    //---------------------------------------------
+    // 3DS callback methods
+    //---------------------------------------------
+
+    @Override
+    public void onSecure3DComplete(boolean success) {
+        // TODO - If 3DS authentication was successful, this is where you would send the token ID
+        // TODO - and payment information back to your server for processing...
+
+        Toast.makeText(this, "3DS authentication " + (success ? "success" : "failure"), Toast.LENGTH_SHORT).show();
+
+        mProgressBar.setVisibility(View.GONE);
+        mPayButton.setEnabled(true);
+
+        Intent i = new Intent(MainActivity.this, ThankYouActivity.class);
+        i.putExtra(ThankYouActivity.EXTRA_PAGE, success ? ThankYouActivity.PAGE_SUCCESS : ThankYouActivity.PAGE_FAIL);
+        startActivity(i);
+    }
+
+    @Override
+    public void onSecure3DError(String message) {
+        Toast.makeText(this, "3DS authentication encountered an error: " + message, Toast.LENGTH_SHORT).show();
+
+        mProgressBar.setVisibility(View.GONE);
+        mPayButton.setEnabled(true);
+
+        Intent i = new Intent(MainActivity.this, ThankYouActivity.class);
+        i.putExtra(ThankYouActivity.EXTRA_PAGE, ThankYouActivity.PAGE_FAIL);
+        startActivity(i);
+    }
+
+    @Override
+    public void onSecure3DCancel() {
+        Toast.makeText(this, "3DS authentication cancelled", Toast.LENGTH_SHORT).show();
+
+        mProgressBar.setVisibility(View.GONE);
+        mPayButton.setEnabled(true);
     }
 
 
@@ -256,7 +300,21 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
             @Override
             public void onSuccess(CardToken cardToken) {
 
-                // TODO Here is where you would send the token ID and payment information back to your server for processing...
+                Toast.makeText(MainActivity.this, "Card token created: " + cardToken.getId(), Toast.LENGTH_SHORT).show();
+
+                // TODO cache cardToken
+
+                // check if 3DS data present
+                Secure3DData secure3DData = cardToken.getCard().getSecure3DData();
+                if (secure3DData != null && secure3DData.getEnrolled()) {
+                    // start 3DS activity
+                    Simplify.start3DSActivity(MainActivity.this, cardToken);
+                    return;
+                }
+
+
+                // TODO - If not performing 3DS authentication, this is where you would send the token ID
+                // TODO - and payment information back to your server for processing...
 
                 mProgressBar.setVisibility(View.GONE);
                 mPayButton.setEnabled(true);

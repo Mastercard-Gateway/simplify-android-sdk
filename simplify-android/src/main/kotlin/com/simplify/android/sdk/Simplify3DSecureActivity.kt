@@ -4,12 +4,16 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import android.webkit.WebChromeClient
+import android.webkit.WebResourceRequest
 import android.webkit.WebView
-import android.webkit.WebViewClient
+import androidx.annotation.RequiresApi
+import androidx.webkit.WebViewClientCompat
+import java.net.URLEncoder
 
 class Simplify3DSecureActivity : AppCompatActivity() {
 
@@ -22,8 +26,17 @@ class Simplify3DSecureActivity : AppCompatActivity() {
     internal val extraTitle: String?
         get() = intent.extras?.getString(EXTRA_TITLE)
 
-    internal val extraHtml: String?
-        get() = intent.extras?.getString(EXTRA_HTML)
+    internal val extraAcsUrl: String?
+        get() = intent.extras?.getString(EXTRA_ACS_URL)
+
+    internal val extraPaReq: String?
+        get() = intent.extras?.getString(EXTRA_PA_REQ)
+
+    internal val extraMerchantData: String?
+        get() = intent.extras?.getString(EXTRA_MERCHANT_DATA)
+
+    internal val extraTermUrl: String?
+        get() = intent.extras?.getString(EXTRA_TERM_URL)
 
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -47,12 +60,14 @@ class Simplify3DSecureActivity : AppCompatActivity() {
 
     fun init() {
         // init html
-        val extraHtml = extraHtml
-        if (extraHtml == null) {
+        if (extraAcsUrl == null || extraPaReq == null || extraTermUrl == null || extraMerchantData == null) {
             onBackPressed()
             return
         }
-        else setWebViewHtml(extraHtml)
+        else {
+            val url = MOBILE_3DS1_URL + "?acsUrl=${encode(extraAcsUrl!!)}&paReq=${encode(extraPaReq!!)}&md=${encode(extraMerchantData!!)}&termUrl=${encode(extraTermUrl!!)}"
+            loadWebViewUrl(Uri.parse(url))
+        }
 
         // init title
         setToolbarTitle(extraTitle ?: defaultTitle)
@@ -62,13 +77,9 @@ class Simplify3DSecureActivity : AppCompatActivity() {
         toolbar.title = title
     }
 
-    internal fun setWebViewHtml(html: String) {
-        webView.loadData(html, "text/html", "utf-8")
-    }
-
     internal fun webViewUrlChanges(uri: Uri) {
         when {
-            REDIRECT_SCHEME.equals(uri.scheme, ignoreCase = true) -> complete(getACSResultFromUri(uri))
+            REDIRECT_SCHEME.equals(uri.scheme, ignoreCase = true) -> complete(getResultFromUri(uri))
             MAILTO_SCHEME.equals(uri.scheme, ignoreCase = true) -> intentToEmail(uri)
             else -> loadWebViewUrl(uri)
         }
@@ -79,8 +90,8 @@ class Simplify3DSecureActivity : AppCompatActivity() {
     }
 
     // separate for testability
-    internal fun complete(acsResult: String?, intent: Intent) {
-        intent.putExtra(EXTRA_ACS_RESULT, acsResult)
+    internal fun complete(result: String?, intent: Intent) {
+        intent.putExtra(EXTRA_RESULT, result)
         setResult(Activity.RESULT_OK, intent)
         finish()
     }
@@ -101,11 +112,11 @@ class Simplify3DSecureActivity : AppCompatActivity() {
         startActivity(intent)
     }
 
-    internal fun getACSResultFromUri(uri: Uri): String? {
+    internal fun getResultFromUri(uri: Uri): String? {
         var result: String? = null
 
         uri.queryParameterNames.forEach { param ->
-            if ("acsResult".equals(param, ignoreCase = true)) {
+            if ("result".equals(param, ignoreCase = true)) {
                 result = uri.getQueryParameter(param)
             }
         }
@@ -113,22 +124,50 @@ class Simplify3DSecureActivity : AppCompatActivity() {
         return result
     }
 
-    internal fun buildWebViewClient(): WebViewClient {
-        return object : WebViewClient() {
+    internal fun buildWebViewClient(): WebViewClientCompat {
+        return object : WebViewClientCompat() {
+
+            @Suppress("OverridingDeprecatedMember")
             override fun shouldOverrideUrlLoading(view: WebView, url: String): Boolean {
                 webViewUrlChanges(Uri.parse(url))
+                return true
+            }
+
+            @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
+            override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
+                webViewUrlChanges(request.url)
                 return true
             }
         }
     }
 
+    internal fun encode(value: String): String {
+        return URLEncoder.encode(value, "UTF-8")
+    }
+
     companion object {
 
+        internal const val MOBILE_3DS1_URL = "https://young-chamber-23463.herokuapp.com/mobile3ds1.html"
+
         /**
-         * The HTML used to initialize the WebView. Should be the HTML content returned from the Gateway
-         * during the Check 3DS Enrollment call
+         *
          */
-        const val EXTRA_HTML = "com.simplify.android.sdk.HTML"
+        const val EXTRA_ACS_URL = "com.simplify.android.sdk.ASC_URL"
+
+        /**
+         *
+         */
+        const val EXTRA_PA_REQ = "com.simplify.android.sdk.PA_REQ"
+
+        /**
+         *
+         */
+        const val EXTRA_MERCHANT_DATA = "com.simplify.android.sdk.MERCHANT_DATA"
+
+        /**
+         *
+         */
+        const val EXTRA_TERM_URL = "com.simplify.android.sdk.TERM_URL"
 
         /**
          * An OPTIONAL title to display in the toolbar for this activity
@@ -138,7 +177,7 @@ class Simplify3DSecureActivity : AppCompatActivity() {
         /**
          * The ACS Result data after performing 3DS
          */
-        const val EXTRA_ACS_RESULT = "com.simplify.android.sdk.ACS_RESULT"
+        const val EXTRA_RESULT = "com.simplify.android.sdk.RESULT"
 
 
         internal const val REDIRECT_SCHEME = "simplifysdk"

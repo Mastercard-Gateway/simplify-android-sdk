@@ -17,6 +17,8 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import org.json.JSONObject;
+
 import java.io.ByteArrayInputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
@@ -78,19 +80,48 @@ public class Simplify {
         void onAndroidPayError(int errorCode);
     }
 
+
+    /**
+     * 
+     */
+    public interface Secure3DCallback {
+
+        /**
+         *
+         * @param success
+         */
+        void onSecure3DComplete(boolean success);
+
+        /**
+         *
+         * @param message
+         */
+        void onSecure3DError(String message);
+
+        /**
+         *
+         */
+        void onSecure3DCancel();
+    }
+
     /**
      * Request code to use with WalletFragment when requesting a {@link MaskedWallet}
      * <p>
      * <b>required if using {@link #handleAndroidPayResult(int, int, Intent, AndroidPayCallback)}</b>
      */
-    public static final int REQUEST_CODE_MASKED_WALLET = 74675439;
+    public static final int REQUEST_CODE_MASKED_WALLET = 1000;
 
     /**
      * Request code to use with WalletFragment when requesting a {@link FullWallet}
      * <p>
      * <b>required if using {@link #handleAndroidPayResult(int, int, Intent, AndroidPayCallback)}</b>
      */
-    public static final int REQUEST_CODE_FULL_WALLET = 74675440;
+    public static final int REQUEST_CODE_FULL_WALLET = 1001;
+
+    /**
+     *
+     */
+    public static final int REQUEST_3DS = 1002;
 
 
 
@@ -293,6 +324,62 @@ public class Simplify {
 
                 callback.onAndroidPayError(errorCode);
                 break;
+        }
+
+        return false;
+    }
+
+
+    public static void start3DSActivity(Activity activity, CardToken cardToken) {
+        start3DSActivity(activity, cardToken, null);
+    }
+
+    public static void start3DSActivity(Activity activity, CardToken cardToken, String title) {
+        Intent intent = new Intent(activity, Simplify3DSecureActivity.class);
+        intent.putExtra(Simplify3DSecureActivity.EXTRA_ACS_URL, cardToken.getCard().getSecure3DData().getAcsUrl());
+        intent.putExtra(Simplify3DSecureActivity.EXTRA_PA_REQ, cardToken.getCard().getSecure3DData().getPaReq());
+        intent.putExtra(Simplify3DSecureActivity.EXTRA_MERCHANT_DATA, cardToken.getCard().getSecure3DData().getMerchantData());
+        intent.putExtra(Simplify3DSecureActivity.EXTRA_TERM_URL, cardToken.getCard().getSecure3DData().getTermUrl());
+
+        if (title != null) {
+            intent.putExtra(Simplify3DSecureActivity.EXTRA_TITLE, title);
+        }
+
+        activity.startActivityForResult(intent, REQUEST_3DS);
+    }
+
+    public static boolean handle3DSResult(int requestCode, int resultCode, Intent data, Secure3DCallback callback) {
+        if (callback == null) {
+            return false;
+        }
+
+        if (requestCode == REQUEST_3DS) {
+            if (resultCode == Activity.RESULT_OK) {
+                String resultJson = data.getStringExtra(Simplify3DSecureActivity.EXTRA_RESULT);
+
+                try {
+                    JSONObject obj = new JSONObject(resultJson).getJSONObject("secure3d");
+
+                    if (obj.has("authenticated")) {
+                        boolean success = obj.getBoolean("authenticated");
+                        callback.onSecure3DComplete(success);
+                    } else if (obj.has("error")) {
+                        String message = obj.getJSONObject("error").getString("message");
+                        callback.onSecure3DError(message);
+                    } else {
+                        callback.onSecure3DError("Unknown error occurred during authentication");
+                    }
+
+                } catch (Exception e) {
+                    Log.e(Simplify.class.getSimpleName(), "Unable to read 3DS result", e);
+                    callback.onSecure3DError("Unable to read 3DS result");
+                }
+
+            } else {
+                callback.onSecure3DCancel();
+            }
+
+            return true;
         }
 
         return false;
