@@ -14,6 +14,7 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import androidx.annotation.RequiresApi
 import androidx.webkit.WebViewClientCompat
+import java.lang.IllegalArgumentException
 import java.net.URLEncoder
 
 class Simplify3DSecureActivity : AppCompatActivity() {
@@ -183,14 +184,24 @@ class Simplify3DSecureActivity : AppCompatActivity() {
         internal const val REDIRECT_SCHEME = "simplifysdk"
         internal const val MAILTO_SCHEME = "mailto"
 
+        /**
+         * Construct an intent to the [Simplify3DSecureActivity] activity, adding the relevant 3DS data from the card token as intent extras
+         *
+         * @param context The calling context
+         * @param cardToken The card token used for a 3DS transaction
+         * @param title An OPTIONAL title to display in the toolbar
+         * @throws IllegalArgumentException If the card token does not contain valid [Secure3DData]
+         */
         @JvmOverloads
         @JvmStatic
         fun buildIntent(context: Context, cardToken: CardToken, title: String? = null): Intent {
+            val secure3DData = cardToken.getCard().getSecure3DData() ?: throw IllegalArgumentException("The provided card token must contain 3DS data. See: Simplify.createCardToken(Card, Secure3DRequestData, Callback);")
+
             val intent = Intent(context, Simplify3DSecureActivity::class.java)
-            intent.putExtra(Simplify3DSecureActivity.EXTRA_ACS_URL, cardToken.getCard().getSecure3DData().getAcsUrl())
-            intent.putExtra(Simplify3DSecureActivity.EXTRA_PA_REQ, cardToken.getCard().getSecure3DData().getPaReq())
-            intent.putExtra(Simplify3DSecureActivity.EXTRA_MERCHANT_DATA, cardToken.getCard().getSecure3DData().merchantData)
-            intent.putExtra(Simplify3DSecureActivity.EXTRA_TERM_URL, cardToken.getCard().getSecure3DData().getTermUrl())
+            intent.putExtra(Simplify3DSecureActivity.EXTRA_ACS_URL, secure3DData.getAcsUrl())
+            intent.putExtra(Simplify3DSecureActivity.EXTRA_PA_REQ, secure3DData.getPaReq())
+            intent.putExtra(Simplify3DSecureActivity.EXTRA_MERCHANT_DATA, secure3DData.getMerchantData())
+            intent.putExtra(Simplify3DSecureActivity.EXTRA_TERM_URL, secure3DData.getTermUrl())
 
             if (title != null) {
                 intent.putExtra(Simplify3DSecureActivity.EXTRA_TITLE, title)
