@@ -2,6 +2,7 @@ package com.simplify.android.sdk
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -46,7 +47,7 @@ class Simplify3DSecureActivity : AppCompatActivity() {
 
         // init toolbar
         toolbar = findViewById(R.id.toolbar)
-        toolbar.setNavigationOnClickListener { view -> onBackPressed() }
+        toolbar.setNavigationOnClickListener { onBackPressed() }
 
         // init web view
         webView = findViewById(R.id.webview)
@@ -147,25 +148,23 @@ class Simplify3DSecureActivity : AppCompatActivity() {
 
     companion object {
 
-        internal const val MOBILE_3DS1_URL = "https://young-chamber-23463.herokuapp.com/mobile3ds1.html"
-
         /**
-         *
+         * The ACS URL returned from CardToken create
          */
         const val EXTRA_ACS_URL = "com.simplify.android.sdk.ASC_URL"
 
         /**
-         *
+         * The PaReq returned from CardToken create
          */
         const val EXTRA_PA_REQ = "com.simplify.android.sdk.PA_REQ"
 
         /**
-         *
+         * The Merchant Data (md) returned from CardToken create
          */
         const val EXTRA_MERCHANT_DATA = "com.simplify.android.sdk.MERCHANT_DATA"
 
         /**
-         *
+         * The Termination URL (termUrl) returned from CardToken create
          */
         const val EXTRA_TERM_URL = "com.simplify.android.sdk.TERM_URL"
 
@@ -175,14 +174,29 @@ class Simplify3DSecureActivity : AppCompatActivity() {
         const val EXTRA_TITLE = "com.simplify.android.sdk.TITLE"
 
         /**
-         * The ACS Result data after performing 3DS
+         * The result data after performing 3DS
          */
         const val EXTRA_RESULT = "com.simplify.android.sdk.RESULT"
 
 
+        internal const val MOBILE_3DS1_URL = "https://young-chamber-23463.herokuapp.com/mobile3ds1.html" // TODO update this to static deploy url
         internal const val REDIRECT_SCHEME = "simplifysdk"
         internal const val MAILTO_SCHEME = "mailto"
+
+        @JvmOverloads
+        @JvmStatic
+        fun buildIntent(context: Context, cardToken: CardToken, title: String? = null): Intent {
+            val intent = Intent(context, Simplify3DSecureActivity::class.java)
+            intent.putExtra(Simplify3DSecureActivity.EXTRA_ACS_URL, cardToken.getCard().getSecure3DData().getAcsUrl())
+            intent.putExtra(Simplify3DSecureActivity.EXTRA_PA_REQ, cardToken.getCard().getSecure3DData().getPaReq())
+            intent.putExtra(Simplify3DSecureActivity.EXTRA_MERCHANT_DATA, cardToken.getCard().getSecure3DData().merchantData)
+            intent.putExtra(Simplify3DSecureActivity.EXTRA_TERM_URL, cardToken.getCard().getSecure3DData().getTermUrl())
+
+            if (title != null) {
+                intent.putExtra(Simplify3DSecureActivity.EXTRA_TITLE, title)
+            }
+
+            return intent
+        }
     }
-
-
 }
