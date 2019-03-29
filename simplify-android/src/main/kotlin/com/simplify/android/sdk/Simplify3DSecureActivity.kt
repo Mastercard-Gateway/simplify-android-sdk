@@ -19,26 +19,15 @@ import java.net.URLEncoder
 
 class Simplify3DSecureActivity : AppCompatActivity() {
 
-    internal lateinit var toolbar: Toolbar
-    internal lateinit var webView: WebView
+    private lateinit var toolbar: Toolbar
+    private lateinit var webView: WebView
 
-    internal val defaultTitle: String
-        get() = getString(R.string.simplify_3d_secure_authentication)
-
-    internal val extraTitle: String?
-        get() = intent.extras?.getString(EXTRA_TITLE)
-
-    internal val extraAcsUrl: String?
-        get() = intent.extras?.getString(EXTRA_ACS_URL)
-
-    internal val extraPaReq: String?
-        get() = intent.extras?.getString(EXTRA_PA_REQ)
-
-    internal val extraMerchantData: String?
-        get() = intent.extras?.getString(EXTRA_MERCHANT_DATA)
-
-    internal val extraTermUrl: String?
-        get() = intent.extras?.getString(EXTRA_TERM_URL)
+    private val defaultTitle by lazyAndroid { getString(R.string.simplify_3d_secure_authentication) }
+    private val extraTitle by lazyAndroid { intent.extras?.getString(EXTRA_TITLE) }
+    private val extraAcsUrl by lazyAndroid { intent.extras?.getString(EXTRA_ACS_URL) }
+    private val extraPaReq by lazyAndroid { intent.extras?.getString(EXTRA_PA_REQ) }
+    private val extraMerchantData by lazyAndroid { intent.extras?.getString(EXTRA_MERCHANT_DATA) }
+    private val extraTermUrl by lazyAndroid { intent.extras?.getString(EXTRA_TERM_URL) }
 
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -46,37 +35,26 @@ class Simplify3DSecureActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.simplify_3dsecure)
 
-        // init toolbar
-        toolbar = findViewById(R.id.toolbar)
-        toolbar.setNavigationOnClickListener { onBackPressed() }
-
-        // init web view
-        webView = findViewById(R.id.webview)
-        webView.webChromeClient = WebChromeClient()
-        webView.settings.domStorageEnabled = true
-        webView.settings.javaScriptEnabled = true
-        webView.webViewClient = buildWebViewClient()
-
-        init()
-    }
-
-    fun init() {
-        // init html
         if (extraAcsUrl == null || extraPaReq == null || extraTermUrl == null || extraMerchantData == null) {
             onBackPressed()
             return
         }
-        else {
-            val url = MOBILE_3DS1_URL + "?acsUrl=${encode(extraAcsUrl!!)}&paReq=${encode(extraPaReq!!)}&md=${encode(extraMerchantData!!)}&termUrl=${encode(extraTermUrl!!)}"
-            loadWebViewUrl(Uri.parse(url))
+
+        // init toolbar
+        toolbar = findViewById<Toolbar>(R.id.toolbar).apply {
+            setNavigationOnClickListener { onBackPressed() }
+            title = extraTitle ?: defaultTitle
         }
 
-        // init title
-        setToolbarTitle(extraTitle ?: defaultTitle)
-    }
+        // init web view
+        webView = findViewById<WebView>(R.id.webview).apply {
+            webChromeClient = WebChromeClient()
+            settings.domStorageEnabled = true
+            settings.javaScriptEnabled = true
+            webViewClient = buildWebViewClient()
+        }
 
-    internal fun setToolbarTitle(title: String) {
-        toolbar.title = title
+        loadWebViewHtml(buildStartingHtml())
     }
 
     internal fun webViewUrlChanges(uri: Uri) {
@@ -87,38 +65,50 @@ class Simplify3DSecureActivity : AppCompatActivity() {
         }
     }
 
-    internal fun complete(acsResult: String?) {
+    private fun complete(acsResult: String?) {
         complete(acsResult, Intent())
     }
 
     // separate for testability
-    internal fun complete(result: String?, intent: Intent) {
+    private fun complete(result: String?, intent: Intent) {
         intent.putExtra(EXTRA_RESULT, result)
         setResult(Activity.RESULT_OK, intent)
         finish()
     }
 
-    internal fun loadWebViewUrl(uri: Uri) {
+    private fun loadWebViewUrl(uri: Uri) {
         webView.loadUrl(uri.toString())
     }
 
-    internal fun intentToEmail(uri: Uri) {
+    private fun loadWebViewHtml(html: String) {
+        webView.loadData(html, "text/html", Charsets.UTF_8.name())
+    }
+
+    private fun buildStartingHtml(): String {
+        return resources.openRawResource(R.raw.secure3d1).readBytes().toString(Charsets.UTF_8)
+                .replace(PLACEHOLDER_ACS_URL, encode(extraAcsUrl!!))
+                .replace(PLACEHOLDER_PA_REQ, encode(extraPaReq!!))
+                .replace(PLACEHOLDER_MERCHANT_DATA, encode(extraMerchantData!!))
+                .replace(PLACEHOLDER_TERM_URL, encode(extraTermUrl!!))
+    }
+
+    private fun intentToEmail(uri: Uri) {
         intentToEmail(uri, Intent(Intent.ACTION_SENDTO))
     }
 
     // separate for testability
-    internal fun intentToEmail(uri: Uri, intent: Intent) {
+    private fun intentToEmail(uri: Uri, intent: Intent) {
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
         intent.data = uri
 
         startActivity(intent)
     }
 
-    internal fun getResultFromUri(uri: Uri): String? {
+    private fun getResultFromUri(uri: Uri): String? {
         var result: String? = null
 
         uri.queryParameterNames.forEach { param ->
-            if ("result".equals(param, ignoreCase = true)) {
+            if (REDIRECT_QUERY_PARAM.equals(param, ignoreCase = true)) {
                 result = uri.getQueryParameter(param)
             }
         }
@@ -126,7 +116,7 @@ class Simplify3DSecureActivity : AppCompatActivity() {
         return result
     }
 
-    internal fun buildWebViewClient(): WebViewClientCompat {
+    private fun buildWebViewClient(): WebViewClientCompat {
         return object : WebViewClientCompat() {
 
             @Suppress("OverridingDeprecatedMember")
@@ -143,8 +133,8 @@ class Simplify3DSecureActivity : AppCompatActivity() {
         }
     }
 
-    internal fun encode(value: String): String {
-        return URLEncoder.encode(value, "UTF-8")
+    private fun encode(value: String): String {
+        return URLEncoder.encode(value, Charsets.UTF_8.name())
     }
 
     companion object {
@@ -180,9 +170,13 @@ class Simplify3DSecureActivity : AppCompatActivity() {
         const val EXTRA_RESULT = "com.simplify.android.sdk.RESULT"
 
 
-        internal const val MOBILE_3DS1_URL = "https://young-chamber-23463.herokuapp.com/mobile3ds1.html" // TODO update this to static deploy url
-        internal const val REDIRECT_SCHEME = "simplifysdk"
-        internal const val MAILTO_SCHEME = "mailto"
+        private const val REDIRECT_SCHEME = "simplifysdk"
+        private const val REDIRECT_QUERY_PARAM = "result"
+        private const val MAILTO_SCHEME = "mailto"
+        private const val PLACEHOLDER_ACS_URL = "{{{acsUrl}}}"
+        private const val PLACEHOLDER_PA_REQ = "{{{paReq}}}"
+        private const val PLACEHOLDER_MERCHANT_DATA = "{{{md}}}"
+        private const val PLACEHOLDER_TERM_URL = "{{{termUrl}}}"
 
         /**
          * Construct an intent to the [Simplify3DSecureActivity] activity, adding the relevant 3DS data from the card token as intent extras
@@ -200,7 +194,7 @@ class Simplify3DSecureActivity : AppCompatActivity() {
             val intent = Intent(context, Simplify3DSecureActivity::class.java)
             intent.putExtra(Simplify3DSecureActivity.EXTRA_ACS_URL, secure3DData.getAcsUrl())
             intent.putExtra(Simplify3DSecureActivity.EXTRA_PA_REQ, secure3DData.getPaReq())
-            intent.putExtra(Simplify3DSecureActivity.EXTRA_MERCHANT_DATA, secure3DData.getMerchantData())
+            intent.putExtra(Simplify3DSecureActivity.EXTRA_MERCHANT_DATA, secure3DData.getMd())
             intent.putExtra(Simplify3DSecureActivity.EXTRA_TERM_URL, secure3DData.getTermUrl())
 
             if (title != null) {

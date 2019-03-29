@@ -54,7 +54,7 @@ public class Secure3DData {
      *
      * @return The merchant data
      */
-    public String getMerchantData() {
+    public String getMd() {
         return md;
     }
 

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+        <script>
+            window.onload = function() {
+                // build form html
+                var html = '<form id="myform" method="post" enctype="application/x-www-form-urlencoded" action="{{{acsUrl}}}">'
+                    + '<input type="hidden" name="PaReq" value="{{{paReq}}}"/>'
+                    + '<input type="hidden" name="MD" value="{{{md}}}"/>'
+                    + '<input type="hidden" name="TermUrl" value="{{{termUrl}}}"/>'
+                    + '</form>';
+
+                // add form to iframe
+                var iframe = document.getElementById('iframe');
+                var doc = iframe.document;
+                if (iframe.contentDocument) {
+                    doc = iframe.contentDocument;
+                }
+                doc.open();
+                doc.writeln(html);
+                doc.close();
+
+                // auto-submit the form
+                doc.getElementById('myform').submit();
+            };
+
+            // 3ds response handler
+            function handle3DSResponse(evt) {
+                window.location.href = 'simplifysdk://secure3d?result=' + encodeURIComponent(evt.data);
+            }
+
+            // listen for iframe messages
+            window.addEventListener("message", handle3DSResponse, false);
+        </script>
+    </head>
+    <body style="margin: 0;">
+        <iframe id="iframe" style="display:block; border:none; width:100vw; height:100vh;"></iframe>
+    </body>
+</html>
