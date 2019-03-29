@@ -60,10 +60,10 @@ dependencies {
     optional 'com.google.android.gms:play-services-wallet:16.0.1'
 
     // optional for rxjava
-    optional 'io.reactivex.rxjava2:rxjava:2.2.6'
+    optional 'io.reactivex.rxjava2:rxjava:2.2.7'
 
     testImplementation 'junit:junit:4.12'
-    testImplementation 'org.mockito:mockito-core:2.23.4'
+    testImplementation 'org.mockito:mockito-core:2.25.0'
 }
 
 task dokkaJavadocs(type: org.jetbrains.dokka.gradle.DokkaTask) {
