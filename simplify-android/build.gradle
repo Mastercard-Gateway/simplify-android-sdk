@@ -3,6 +3,7 @@ apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-android'
 apply plugin: 'com.jfrog.bintray'
 apply plugin: 'maven-publish'
+apply plugin: 'org.jetbrains.dokka-android'
 
 
 android {
@@ -65,20 +66,14 @@ dependencies {
     testImplementation 'org.mockito:mockito-core:2.23.4'
 }
 
-task androidJavadocs(type: Javadoc) {
-    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
-    android.libraryVariants.all { variant ->
-        if (variant.name == 'release') {
-            owner.classpath += variant.getCompileClasspath(null)
-        }
-    }
-    source = android.sourceSets.main.java.srcDirs
-    exclude '**/R.html', '**/R.*.html', '**/index.html'
+task dokkaJavadocs(type: org.jetbrains.dokka.gradle.DokkaTask) {
+    outputFormat = 'javadoc'
+    outputDirectory = "${project.buildDir}/javadoc"
 }
 
-task androidJavadocsJar(type: Jar, dependsOn: androidJavadocs) {
+task dokkaJavadocsJar(type: Jar, dependsOn: dokkaJavadocs) {
     classifier = 'javadoc'
-    from androidJavadocs.destinationDir
+    from dokkaJavadocs.outputDirectory
 }
 
 task androidSourcesJar(type: Jar) {
@@ -94,7 +89,7 @@ publishing {
             version = libraryVersionName
 
             artifact bundleReleaseAar
-            artifact androidJavadocsJar
+            artifact dokkaJavadocsJar
             artifact androidSourcesJar
 
             pom.withXml {
