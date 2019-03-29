@@ -45,6 +45,9 @@
         <activity android:name=".ThankYouActivity"
             android:screenOrientation="portrait"/>
 
+        <activity android:name="com.simplify.android.sdk.Simplify3DSecureActivity"
+            android:screenOrientation="portrait"/>
+
     </application>
 
 </manifest>

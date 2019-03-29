@@ -17,10 +17,13 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import org.json.JSONObject;
+
 import java.io.ByteArrayInputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
@@ -40,6 +43,15 @@ import javax.net.ssl.TrustManagerFactory;
 import io.reactivex.Single;
 
 
+/**
+ * <p>The public interface to the Simplify SDK</p>
+ * <p>Example set up:
+ * <br/>
+ * `Simplify simplify = new Simplify();
+ * simplify.setApiKey("YOUR_SIMPLIFY_PUBLIC_API_KEY");
+ * simplify.setAndroidPayPublicKey("YOUR_ANDROID_PAY_PUBLIC_KEY");`
+ * </p>
+ */
 @SuppressWarnings("unused")
 public class Simplify {
 
@@ -77,20 +89,53 @@ public class Simplify {
         void onAndroidPayError(int errorCode);
     }
 
+
+    /**
+     * A callback interface for handling the 3DS transaction lifecycle
+     */
+    public interface Secure3DCallback {
+
+        /**
+         * Called when the 3DS authentication process is complete.
+         *
+         * @param success True or False indicating successful authentication
+         */
+        void onSecure3DComplete(boolean success);
+
+        /**
+         * Called when encountering an error during the 3DS process.
+         *
+         * @param message A description of the error
+         */
+        void onSecure3DError(String message);
+
+        /**
+         * Called when a user cancels the 3DS authentication process
+         */
+        void onSecure3DCancel();
+    }
+
     /**
      * Request code to use with WalletFragment when requesting a {@link MaskedWallet}
      * <p>
      * <b>required if using {@link #handleAndroidPayResult(int, int, Intent, AndroidPayCallback)}</b>
      */
-    public static final int REQUEST_CODE_MASKED_WALLET = 74675439;
+    public static final int REQUEST_CODE_MASKED_WALLET = 1000;
 
     /**
      * Request code to use with WalletFragment when requesting a {@link FullWallet}
      * <p>
      * <b>required if using {@link #handleAndroidPayResult(int, int, Intent, AndroidPayCallback)}</b>
      */
-    public static final int REQUEST_CODE_FULL_WALLET = 74675440;
+    public static final int REQUEST_CODE_FULL_WALLET = 1001;
 
+    /**
+     * A request code to use when launching the 3DS activity for result.
+     * <br/>
+     * Will be used when calling the convenience methods {@link #start3DSActivity(Activity, CardToken, String)}
+     * and {@link #handle3DSResult(int, int, Intent, Secure3DCallback)}
+     */
+    static final int REQUEST_3DS = 1002;
 
 
     static final String PATTERN_API_KEY = "(?:lv|sb)pb_(.+)";
@@ -98,6 +143,7 @@ public class Simplify {
 
     String apiKey;
     String androidPayPublicKey;
+    Gson gson = new Gson();
 
 
     /**
@@ -149,7 +195,7 @@ public class Simplify {
     }
 
     /**
-     * Gets the Android Pay public key
+     * <p>Gets the Android Pay public key</p>
      *
      * @return The public key
      */
@@ -158,17 +204,30 @@ public class Simplify {
     }
 
     /**
-     * Performs an asynchronous request to the Simplify server to retrieve a card token
-     * that can then be used to process a payment
+     * <p>Performs an asynchronous request to the Simplify server to retrieve a card token
+     * that can then be used to process a payment</p>
      *
      * @param card     A valid card object
      * @param callback The callback to invoke after the request is complete
      */
     public void createCardToken(Card card, CardToken.Callback callback) {
+        createCardToken(card, null, callback);
+    }
+
+    /**
+     * <p>Performs an asynchronous request to the Simplify server to retrieve a card token
+     * that can then be used to process a payment.
+     * <br/>Includes 3DS request data required to initiate a 3DS authentication process.</p>
+     *
+     * @param card                A valid card object
+     * @param secure3DRequestData Data required to initiate 3DS authentication
+     * @param callback            The callback to invoke after the request is complete
+     */
+    public void createCardToken(Card card, Secure3DRequestData secure3DRequestData, CardToken.Callback callback) {
         // create handler on current thread
         Handler handler = new Handler(msg -> handleCreateCardTokenCallbackMessage(callback, msg.obj));
 
-        new Thread(() -> runCreateCardToken(card, handler)).start();
+        new Thread(() -> runCreateCardToken(card, secure3DRequestData, handler)).start();
     }
 
     /**
@@ -179,7 +238,21 @@ public class Simplify {
      * @return A Single of the CardToken
      */
     public Single<CardToken> createCardToken(Card card) {
-        return Single.fromCallable(() -> executeCreateCardToken(card));
+        return createCardToken(card, (Secure3DRequestData) null);
+    }
+
+    /**
+     * <p>Builds a Single to retrieve a card token that can then be used to process a payment
+     * <br/>Includes 3DS request data required to initiate a 3DS authentication process.</p>
+     *
+     * <p>Does not operate on any particular scheduler</p>
+     *
+     * @param card                A valid card object
+     * @param secure3DRequestData Data requires to initiate 3DS authentication
+     * @return A Single of the CardToken
+     */
+    public Single<CardToken> createCardToken(Card card, Secure3DRequestData secure3DRequestData) {
+        return Single.fromCallable(() -> executeCreateCardToken(card, secure3DRequestData));
     }
 
     /**
@@ -221,7 +294,7 @@ public class Simplify {
      * @param requestCode The activity request code
      * @param resultCode  The activity result code
      * @param data        Data returned by activity
-     * @param callback    The AndroidPayCallback
+     * @param callback    The {@link AndroidPayCallback}
      * @return True if handled, False otherwise
      * @throws IllegalArgumentException If callback is null
      */
@@ -271,6 +344,90 @@ public class Simplify {
 
                 callback.onAndroidPayError(errorCode);
                 break;
+        }
+
+        return false;
+    }
+
+    /**
+     * Starts the {@link Simplify3DSecureActivity} for result, and initializes it with the required 3DS info
+     *
+     * @param activity  The calling activity
+     * @param cardToken A card token with a valid card, containing 3DS data
+     */
+    public static void start3DSActivity(Activity activity, CardToken cardToken) {
+        start3DSActivity(activity, cardToken, null);
+    }
+
+    /**
+     * Starts the {@link Simplify3DSecureActivity} for result, and initializes it with the required 3DS info
+     *
+     * @param activity  The calling activity
+     * @param cardToken A card token with a valid card, containing 3DS data
+     * @param title     The title to display in the activity's toolbar
+     * @throws IllegalArgumentException If cardToken missing 3DS data
+     */
+    public static void start3DSActivity(Activity activity, CardToken cardToken, String title) {
+        if (cardToken.getCard().getSecure3DData() == null) {
+            throw new IllegalArgumentException("The provided card token must contain 3DS data. See: createCardToken(Card, Secure3DRequestData, Callback);");
+        }
+
+        Intent intent = Simplify3DSecureActivity.buildIntent(activity, cardToken, title);
+        activity.startActivityForResult(intent, REQUEST_3DS);
+    }
+
+    /**
+     * <p>Convenience method to handle the 3DS authentication lifecycle. You may use this method within
+     * onActivityResult() to delegate the transaction to a {@link Secure3DCallback}.</p>
+     * <pre><code>
+     * protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+     *
+     *     if (mSimplify.handle3DSResult(requestCode, resultCode, data, this)) {
+     *         return;
+     *     }
+     *
+     *     // ...
+     * }</code></pre>
+     *
+     * @param requestCode The activity request code
+     * @param resultCode  The activity result code
+     * @param data        Data returned by the activity
+     * @param callback    The {@link Secure3DCallback}
+     * @return True if handled, False otherwise
+     * @throws IllegalArgumentException If callback is null
+     */
+    public static boolean handle3DSResult(int requestCode, int resultCode, Intent data, Secure3DCallback callback) {
+        if (callback == null) {
+            throw new IllegalArgumentException("AndroidPayCallback can not be null");
+        }
+
+        if (requestCode == REQUEST_3DS) {
+            if (resultCode == Activity.RESULT_OK) {
+                String resultJson = data.getStringExtra(Simplify3DSecureActivity.EXTRA_RESULT);
+
+                try {
+                    JSONObject obj = new JSONObject(resultJson).getJSONObject("secure3d");
+
+                    if (obj.has("authenticated")) {
+                        boolean success = obj.getBoolean("authenticated");
+                        callback.onSecure3DComplete(success);
+                    } else if (obj.has("error")) {
+                        String message = obj.getJSONObject("error").getString("message");
+                        callback.onSecure3DError(message);
+                    } else {
+                        callback.onSecure3DError("Unknown error occurred during authentication");
+                    }
+
+                } catch (Exception e) {
+                    Log.e(Simplify.class.getSimpleName(), "Unable to read 3DS result", e);
+                    callback.onSecure3DError("Unable to read 3DS result");
+                }
+
+            } else {
+                callback.onSecure3DCancel();
+            }
+
+            return true;
         }
 
         return false;
@@ -345,10 +502,10 @@ public class Simplify {
      * @param card
      * @param handler
      */
-    void runCreateCardToken(Card card, Handler handler) {
+    void runCreateCardToken(Card card, Secure3DRequestData secure3DRequestData, Handler handler) {
         Message m = handler.obtainMessage();
         try {
-            m.obj = executeCreateCardToken(card);
+            m.obj = executeCreateCardToken(card, secure3DRequestData);
         } catch (Exception e) {
             m.obj = e;
         }
@@ -356,14 +513,20 @@ public class Simplify {
         handler.sendMessage(m);
     }
 
-    CardToken executeCreateCardToken(Card card) throws Exception {
+    CardToken executeCreateCardToken(Card card, Secure3DRequestData secure3DRequestData) throws Exception {
         // build url
         URL url = new URL(getUrl() + Constants.API_PATH_CARDTOKEN);
 
         // build data
         JsonObject json = new JsonObject();
         json.addProperty("key", apiKey);
-        json.add("card", new Gson().toJsonTree(card));
+        json.add("card", gson.toJsonTree(card));
+
+        // add 3DS if provided
+        if (secure3DRequestData != null) {
+            json.add("secure3DRequestData", gson.toJsonTree(secure3DRequestData));
+        }
+
         String data = json.toString();
 
         // make the call
@@ -418,7 +581,7 @@ public class Simplify {
         // write data
         if (data != null) {
             OutputStream os = c.getOutputStream();
-            os.write(data.getBytes("UTF-8"));
+            os.write(data.getBytes(StandardCharsets.UTF_8));
             os.close();
         }
 

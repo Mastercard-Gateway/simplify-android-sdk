@@ -1,15 +1,17 @@
 apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-android'
 apply plugin: 'com.jfrog.bintray'
 apply plugin: 'maven-publish'
+apply plugin: 'org.jetbrains.dokka-android'
 
 
 android {
-    compileSdkVersion 27
-    buildToolsVersion '27.0.3'
+    compileSdkVersion 28
 
     defaultConfig {
-        minSdkVersion 16
-        targetSdkVersion 27
+        minSdkVersion 19
+        targetSdkVersion 28
         versionName libraryVersionName
 
         consumerProguardFiles 'proguard.pro'
@@ -34,6 +36,10 @@ android {
             includeAndroidResources = true
         }
     }
+
+    sourceSets {
+        main.java.srcDirs += 'src/main/kotlin'
+    }
 }
 
 // define an 'optional'
@@ -44,34 +50,30 @@ configurations {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'com.android.support:appcompat-v7:27.1.1'
+    implementation 'androidx.appcompat:appcompat:1.1.0-alpha03'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+
     implementation 'com.google.code.gson:gson:2.8.2'
 
     // optional for android pay
-    optional 'com.android.support:support-v4:27.1.1'
-    optional 'com.google.android.gms:play-services-wallet:15.0.0'
+    optional 'androidx.legacy:legacy-support-v4:1.0.0'
+    optional 'com.google.android.gms:play-services-wallet:16.0.1'
 
     // optional for rxjava
-    optional 'io.reactivex.rxjava2:rxjava:2.1.10'
+    optional 'io.reactivex.rxjava2:rxjava:2.2.7'
 
     testImplementation 'junit:junit:4.12'
-    testImplementation 'org.mockito:mockito-core:2.13.0'
+    testImplementation 'org.mockito:mockito-core:2.25.0'
 }
 
-task androidJavadocs(type: Javadoc) {
-    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
-    android.libraryVariants.all { variant ->
-        if (variant.name == 'release') {
-            owner.classpath += variant.getCompileClasspath(null)
-        }
-    }
-    source = android.sourceSets.main.java.srcDirs
-    exclude '**/R.html', '**/R.*.html', '**/index.html'
+task dokkaJavadocs(type: org.jetbrains.dokka.gradle.DokkaTask) {
+    outputFormat = 'javadoc'
+    outputDirectory = "${project.buildDir}/javadoc"
 }
 
-task androidJavadocsJar(type: Jar, dependsOn: androidJavadocs) {
+task dokkaJavadocsJar(type: Jar, dependsOn: dokkaJavadocs) {
     classifier = 'javadoc'
-    from androidJavadocs.destinationDir
+    from dokkaJavadocs.outputDirectory
 }
 
 task androidSourcesJar(type: Jar) {
@@ -86,8 +88,8 @@ publishing {
             artifactId project.name
             version = libraryVersionName
 
-            artifact bundleRelease
-            artifact androidJavadocsJar
+            artifact bundleReleaseAar
+            artifact dokkaJavadocsJar
             artifact androidSourcesJar
 
             pom.withXml {
@@ -127,17 +129,9 @@ publishing {
                 // adds developer info
                 def developers = root.appendNode('developers')
                 def dev = developers.appendNode('developer')
-                dev.appendNode('id', 'nak5ive')
-                dev.appendNode('name', 'Nevada Kent')
-                dev.appendNode('email', 'nak5ive@gmail.com')
-                dev = developers.appendNode('developer')
-                dev.appendNode('id', 'rubixhacker')
-                dev.appendNode('name', 'Stewart Boling')
-                dev.appendNode('email', 'rubixhacker@gmail.com')
-                dev = developers.appendNode('developer')
-                dev.appendNode('id', 'nitinshambhu')
-                dev.appendNode('name', 'Nitin Shambhu')
-                dev.appendNode('email', 'nitinshambhu@hotmail.com')
+                dev.appendNode('id', 'simplifycom')
+                dev.appendNode('name', 'Simplify Commerce')
+                dev.appendNode('email', 'support@simplify.com')
             }
         }
     }

@@ -1,14 +1,14 @@
 package com.simplify.android.sdk;
 
-import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.res.TypedArray;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
-import android.support.annotation.DrawableRes;
-import android.support.v4.content.ContextCompat;
+import androidx.annotation.DrawableRes;
+import androidx.appcompat.app.AlertDialog;
+import androidx.core.content.ContextCompat;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.AttributeSet;
@@ -269,7 +269,7 @@ public class CardEditor extends LinearLayout {
             Utils.setDividerColor(monthPicker, value.data);
             Utils.setDividerColor(yearPicker, value.data);
 
-            expirationDialog = new android.support.v7.app.AlertDialog.Builder(getContext()).setTitle(R.string.simplify_expiration)
+            expirationDialog = new AlertDialog.Builder(getContext()).setTitle(R.string.simplify_expiration)
                     .setView(datePickerView)
                     .setPositiveButton(android.R.string.ok, mExpiryOkClickListener)
                     .setNegativeButton(android.R.string.cancel, mExpiryCancelClickListener)
