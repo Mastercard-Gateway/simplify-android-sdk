@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -11,7 +10,6 @@
         android:id="@+id/simplify_number"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:drawableLeft="@drawable/simplify_number"
         android:drawableStart="@drawable/simplify_number"
         android:drawablePadding="8dp"
         android:hint="@string/simplify_card_number"
@@ -28,7 +26,6 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:drawableLeft="@drawable/simplify_expiry"
             android:drawableStart="@drawable/simplify_expiry"
             android:drawablePadding="8dp"
             android:hint="@string/simplify_expiry"
@@ -41,7 +38,6 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:drawableLeft="@drawable/simplify_cvc"
             android:drawableStart="@drawable/simplify_cvc"
             android:drawablePadding="8dp"
             android:hint="@string/simplify_cvc"

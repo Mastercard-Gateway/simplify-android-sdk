@@ -31,6 +31,8 @@ public class Card {
     CardEntryMode cardEntryMode;
     JsonObject androidPayData;
 
+    Secure3DData secure3DData;
+
 
     /**
      * The id of card on file
@@ -272,6 +274,13 @@ public class Card {
         return dateCreated;
     }
 
+    /**
+     * The 3DS data associated with this card
+     * @return The 3DS data
+     */
+    public Secure3DData getSecure3DData() {
+        return secure3DData;
+    }
 
     CardEntryMode getCardEntryMode() {
         return cardEntryMode;
