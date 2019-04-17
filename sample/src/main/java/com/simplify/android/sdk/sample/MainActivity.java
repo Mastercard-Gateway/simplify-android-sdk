@@ -32,23 +32,24 @@ import com.google.android.gms.wallet.fragment.WalletFragmentInitParams;
 import com.google.android.gms.wallet.fragment.WalletFragmentMode;
 import com.google.android.gms.wallet.fragment.WalletFragmentOptions;
 import com.google.android.gms.wallet.fragment.WalletFragmentStyle;
-import com.simplify.android.sdk.Card;
-import com.simplify.android.sdk.CardEditor;
-import com.simplify.android.sdk.CardToken;
-import com.simplify.android.sdk.Secure3DData;
-import com.simplify.android.sdk.Secure3DRequestData;
-import com.simplify.android.sdk.Simplify;
+import com.simplify.android.sdk.CardEditorKotlin;
+import com.simplify.android.sdk.SimplifyAndroidPayCallback;
+import com.simplify.android.sdk.SimplifyCallback;
+import com.simplify.android.sdk.SimplifyKotlin;
+import com.simplify.android.sdk.SimplifyMap;
+import com.simplify.android.sdk.SimplifySecure3DCallback;
 
-public class MainActivity extends AppCompatActivity implements Simplify.AndroidPayCallback, Simplify.Secure3DCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+
+public class MainActivity extends AppCompatActivity implements SimplifyAndroidPayCallback, SimplifySecure3DCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     static final String TAG = MainActivity.class.getSimpleName();
 
     static final String WALLET_FRAGMENT_ID = "wallet_fragment";
 
     GoogleApiClient mGoogleApiClient;
-    CardEditor mCardEditor;
+    CardEditorKotlin mCardEditor;
     Button mPayButton;
-    Simplify simplify;
+    SimplifyKotlin simplify;
     ProgressBar mProgressBar;
 
 
@@ -85,7 +86,7 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
         // let the Simplify SDK marshall out the android pay activity results
         if (simplify.handleAndroidPayResult(requestCode, resultCode, data, this)) {
             return;
-        } else if (Simplify.handle3DSResult(requestCode, resultCode, data, this)) {
+        } else if (SimplifyKotlin.handle3DSResult(requestCode, resultCode, data, this)) {
             return;
         }
 
@@ -211,10 +212,10 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
 
         mProgressBar = (ProgressBar) findViewById(R.id.progress_bar);
 
-        mCardEditor = (CardEditor) findViewById(R.id.card_editor);
-        mCardEditor.addOnStateChangedListener(new CardEditor.OnStateChangedListener() {
+        mCardEditor = (CardEditorKotlin) findViewById(R.id.card_editor);
+        mCardEditor.addOnStateChangedListener(new CardEditorKotlin.OnStateChangedListener() {
             @Override
-            public void onStateChange(CardEditor cardEditor) {
+            public void onStateChange(CardEditorKotlin cardEditor) {
                 mPayButton.setEnabled(cardEditor.isValid());
             }
         });
@@ -271,7 +272,7 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
         //       you MUST set the request code to Simplify.REQUEST_CODE_MASKED_WALLET
         WalletFragmentInitParams startParams = WalletFragmentInitParams.newBuilder()
                 .setMaskedWalletRequest(getMaskedWalletRequest())
-                .setMaskedWalletRequestCode(Simplify.REQUEST_CODE_MASKED_WALLET)
+                .setMaskedWalletRequestCode(SimplifyKotlin.REQUEST_CODE_MASKED_WALLET)
                 .build();
 
         walletFragment.initialize(startParams);
@@ -292,23 +293,25 @@ public class MainActivity extends AppCompatActivity implements Simplify.AndroidP
         mProgressBar.setVisibility(View.VISIBLE);
         mPayButton.setEnabled(false);
 
-        Card card = mCardEditor.getCard();
+        SimplifyMap card = mCardEditor.getCard();
 
-        Secure3DRequestData secure3DRequestData = new Secure3DRequestData(100, Constants.CURRENCY_CODE, "Iced coffee");
+        SimplifyMap secure3DRequestData = new SimplifyMap()
+                .set("amount", 100)
+                .set("currency", Constants.CURRENCY_CODE)
+                .set("description", "Iced coffee");
 
-        simplify.createCardToken(card, secure3DRequestData, new CardToken.Callback() {
+        simplify.createCardToken(card, secure3DRequestData, new SimplifyCallback() {
             @Override
-            public void onSuccess(CardToken cardToken) {
+            public void onSuccess(@NonNull SimplifyMap cardToken) {
 
-                Toast.makeText(MainActivity.this, "Card token created: " + cardToken.getId(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "Card token created: " + cardToken.get("id"), Toast.LENGTH_SHORT).show();
 
                 // TODO cache cardToken
 
                 // check if 3DS data present
-                Secure3DData secure3DData = cardToken.getCard().getSecure3DData();
-                if (secure3DData != null && secure3DData.getEnrolled()) {
+                if (cardToken.containsKey("card.secure3DData.isEnrolled") && (boolean) cardToken.get("card.secure3DData.isEnrolled")) {
                     // start 3DS activity
-                    Simplify.start3DSActivity(MainActivity.this, cardToken);
+                    SimplifyKotlin.start3DSActivity(MainActivity.this, cardToken);
                     return;
                 }
 

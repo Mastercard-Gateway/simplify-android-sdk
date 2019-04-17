@@ -27,17 +27,19 @@ import com.google.android.gms.wallet.fragment.WalletFragmentInitParams;
 import com.google.android.gms.wallet.fragment.WalletFragmentMode;
 import com.google.android.gms.wallet.fragment.WalletFragmentOptions;
 import com.google.android.gms.wallet.fragment.WalletFragmentStyle;
-import com.simplify.android.sdk.CardToken;
-import com.simplify.android.sdk.Simplify;
+import com.simplify.android.sdk.SimplifyAndroidPayCallback;
+import com.simplify.android.sdk.SimplifyCallback;
+import com.simplify.android.sdk.SimplifyKotlin;
+import com.simplify.android.sdk.SimplifyMap;
 
-public class ConfirmationActivity extends AppCompatActivity implements Simplify.AndroidPayCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+public class ConfirmationActivity extends AppCompatActivity implements SimplifyAndroidPayCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     static final String TAG = ConfirmationActivity.class.getSimpleName();
 
     GoogleApiClient mGoogleApiClient;
     MaskedWallet mMaskedWallet;
     Button mPayButton;
-    Simplify simplify;
+    SimplifyKotlin simplify;
     ProgressBar mProgressBar;
 
 
@@ -94,9 +96,9 @@ public class ConfirmationActivity extends AppCompatActivity implements Simplify.
         mProgressBar.setVisibility(View.VISIBLE);
 
         // create simplify token with wallet
-        simplify.createAndroidPayCardToken(fullWallet, new CardToken.Callback() {
+        simplify.createAndroidPayCardToken(fullWallet, new SimplifyCallback() {
             @Override
-            public void onSuccess(CardToken cardToken) {
+            public void onSuccess(SimplifyMap cardToken) {
 
                 // TODO Here is where you would send the token ID and payment information back to your server for processing...
 
@@ -202,7 +204,7 @@ public class ConfirmationActivity extends AppCompatActivity implements Simplify.
 
         WalletFragmentInitParams startParams = WalletFragmentInitParams.newBuilder()
                 .setMaskedWallet(mMaskedWallet)
-                .setMaskedWalletRequestCode(Simplify.REQUEST_CODE_MASKED_WALLET)
+                .setMaskedWalletRequestCode(SimplifyKotlin.REQUEST_CODE_MASKED_WALLET)
                 .build();
 
         walletFragment.initialize(startParams);
@@ -222,7 +224,7 @@ public class ConfirmationActivity extends AppCompatActivity implements Simplify.
             return;
         }
 
-        Wallet.Payments.loadFullWallet(mGoogleApiClient, getFullWalletRequest(), Simplify.REQUEST_CODE_FULL_WALLET);
+        Wallet.Payments.loadFullWallet(mGoogleApiClient, getFullWalletRequest(), SimplifyKotlin.REQUEST_CODE_FULL_WALLET);
     }
 
     FullWalletRequest getFullWalletRequest() {

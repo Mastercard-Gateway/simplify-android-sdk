@@ -1,50 +1,82 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="vertical"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context="${packageName}.${activityClass}">
 
-    <EditText
-        android:id="@+id/simplify_number"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:drawableStart="@drawable/simplify_number"
-        android:drawablePadding="8dp"
-        android:hint="@string/simplify_card_number"
-        android:imeOptions="actionNext"
-        android:inputType="number"
-        android:maxLines="1"/>
-
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <EditText
-            android:id="@+id/simplify_expiry"
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/simplify_number_layout"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:drawableStart="@drawable/simplify_expiry"
-            android:drawablePadding="8dp"
-            android:hint="@string/simplify_expiry"
-            android:imeOptions="actionNext"
-            android:maxLines="1"
-            android:inputType="text"/>
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
 
-        <EditText
-            android:id="@+id/simplify_cvc"
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/simplify_number"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:drawableStart="@drawable/simplify_number"
+                android:drawablePadding="8dp"
+                android:hint="@string/simplify_card_number"
+                android:imeOptions="actionNext"
+                android:inputType="number"
+                android:textAlignment="viewStart"
+                android:maxLines="1" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/simplify_expiry_layout"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:drawableStart="@drawable/simplify_cvc"
-            android:drawablePadding="8dp"
-            android:hint="@string/simplify_cvc"
-            android:imeOptions="actionDone"
-            android:inputType="number"
-            android:maxLines="1"/>
+            android:layout_marginTop="8dp"
+            app:layout_constraintTop_toBottomOf="@+id/simplify_number_layout"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintEnd_toStartOf="@+id/simplify_cvc_layout">
 
-    </LinearLayout>
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/simplify_expiry"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:drawableStart="@drawable/simplify_expiry"
+                android:drawablePadding="8dp"
+                android:hint="@string/simplify_expiry"
+                android:imeOptions="actionNext"
+                android:inputType="text"
+                android:textAlignment="viewStart"
+                android:maxLines="1" />
 
-</LinearLayout>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/simplify_cvc_layout"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            app:layout_constraintTop_toTopOf="@+id/simplify_expiry_layout"
+            app:layout_constraintStart_toEndOf="@+id/simplify_expiry_layout"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/simplify_cvc"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:drawableStart="@drawable/simplify_cvc"
+                android:drawablePadding="8dp"
+                android:hint="@string/simplify_cvc"
+                android:imeOptions="actionDone"
+                android:inputType="number"
+                android:textAlignment="viewStart"
+                android:maxLines="1" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

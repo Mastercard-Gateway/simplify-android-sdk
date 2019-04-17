@@ -13,25 +13,25 @@ import static org.junit.Assert.fail;
 
 public class ResponseTest {
 
-    static final String testString = "here is a test string";
-
-    Response response;
-
-    @Before
-    public void setup() {
-        response = new Response();
-    }
-
-    @Test
-    public void testInputStreamToString() {
-        // init a fake stream
-        InputStream is = new ByteArrayInputStream(testString.getBytes());
-
-        // test parsing back into string
-        try {
-            assertEquals(response.inputStreamToString(is), testString);
-        } catch (IOException e) {
-            fail(e.getMessage());
-        }
-    }
+//    static final String testString = "here is a test string";
+//
+//    Response response;
+//
+//    @Before
+//    public void setup() {
+//        response = new Response();
+//    }
+//
+//    @Test
+//    public void testInputStreamToString() {
+//        // init a fake stream
+//        InputStream is = new ByteArrayInputStream(testString.getBytes());
+//
+//        // test parsing back into string
+//        try {
+//            assertEquals(response.inputStreamToString(is), testString);
+//        } catch (IOException e) {
+//            fail(e.getMessage());
+//        }
+//    }
 }

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <declare-styleable name="CardEditor">
+    <declare-styleable name="CardEditorKotlin">
         <!-- The color of the icons -->
         <attr name="iconColor" format="color|reference"/>
         <!-- The enabled state of the edit text fields -->

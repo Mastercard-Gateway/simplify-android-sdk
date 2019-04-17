@@ -125,22 +125,22 @@ class Simplify3DSecureActivity : AppCompatActivity() {
     companion object {
 
         /**
-         * The ACS URL returned from CardToken create
+         * The ACS URL returned from card token create
          */
         const val EXTRA_ACS_URL = "com.simplify.android.sdk.ASC_URL"
 
         /**
-         * The PaReq returned from CardToken create
+         * The PaReq returned from card token create
          */
         const val EXTRA_PA_REQ = "com.simplify.android.sdk.PA_REQ"
 
         /**
-         * The Merchant Data (md) returned from CardToken create
+         * The Merchant Data (md) returned from card token create
          */
         const val EXTRA_MERCHANT_DATA = "com.simplify.android.sdk.MERCHANT_DATA"
 
         /**
-         * The Termination URL (termUrl) returned from CardToken create
+         * The Termination URL (termUrl) returned from card token create
          */
         const val EXTRA_TERM_URL = "com.simplify.android.sdk.TERM_URL"
 
@@ -169,22 +169,21 @@ class Simplify3DSecureActivity : AppCompatActivity() {
          * @param context The calling context
          * @param cardToken The card token used for a 3DS transaction
          * @param title An OPTIONAL title to display in the toolbar
-         * @throws IllegalArgumentException If the card token does not contain valid [Secure3DData]
+         * @throws IllegalArgumentException If the card token does not contain valid 3DS data
          */
         @JvmOverloads
         @JvmStatic
-        fun buildIntent(context: Context, cardToken: CardToken, title: String? = null): Intent {
-            val secure3DData = cardToken.getCard().getSecure3DData() ?: throw IllegalArgumentException("The provided card token must contain 3DS data. See: Simplify.createCardToken(Card, Secure3DRequestData, Callback);")
+        fun buildIntent(context: Context, cardToken: SimplifyMap, title: String? = null): Intent {
+            if (!cardToken.containsKey("card.secure3DData")) {
+                throw IllegalArgumentException("The provided card token must contain 3DS data.")
+            }
 
             return Intent(context, Simplify3DSecureActivity::class.java).apply {
-                putExtra(Simplify3DSecureActivity.EXTRA_ACS_URL, secure3DData.getAcsUrl())
-                putExtra(Simplify3DSecureActivity.EXTRA_PA_REQ, secure3DData.getPaReq())
-                putExtra(Simplify3DSecureActivity.EXTRA_MERCHANT_DATA, secure3DData.getMd())
-                putExtra(Simplify3DSecureActivity.EXTRA_TERM_URL, secure3DData.getTermUrl())
-
-                if (title != null) {
-                    putExtra(Simplify3DSecureActivity.EXTRA_TITLE, title)
-                }
+                putExtra(Simplify3DSecureActivity.EXTRA_ACS_URL, cardToken["card.secure3DData.acsUrl"] as String?)
+                putExtra(Simplify3DSecureActivity.EXTRA_PA_REQ, cardToken["card.secure3DData.paReq"] as String?)
+                putExtra(Simplify3DSecureActivity.EXTRA_MERCHANT_DATA, cardToken["card.secure3DData.md"] as String?)
+                putExtra(Simplify3DSecureActivity.EXTRA_TERM_URL, cardToken["card.secure3DData.termUrl"] as String?)
+                putExtra(Simplify3DSecureActivity.EXTRA_TITLE, title)
             }
         }
     }

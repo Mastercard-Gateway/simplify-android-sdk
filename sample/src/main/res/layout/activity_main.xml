@@ -43,7 +43,7 @@
             android:textSize="20sp"
             android:text="@string/pay_with_a_card"/>
 
-        <com.simplify.android.sdk.CardEditor
+        <com.simplify.android.sdk.CardEditorKotlin
             android:id="@+id/card_editor"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
