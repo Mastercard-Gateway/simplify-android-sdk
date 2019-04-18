@@ -35,7 +35,7 @@ import com.google.android.gms.wallet.fragment.WalletFragmentStyle;
 import com.simplify.android.sdk.CardEditorKotlin;
 import com.simplify.android.sdk.SimplifyAndroidPayCallback;
 import com.simplify.android.sdk.SimplifyCallback;
-import com.simplify.android.sdk.SimplifyKotlin;
+import com.simplify.android.sdk.Simplify;
 import com.simplify.android.sdk.SimplifyMap;
 import com.simplify.android.sdk.SimplifySecure3DCallback;
 
@@ -49,7 +49,7 @@ public class MainActivity extends AppCompatActivity implements SimplifyAndroidPa
     GoogleApiClient mGoogleApiClient;
     CardEditorKotlin mCardEditor;
     Button mPayButton;
-    SimplifyKotlin simplify;
+    Simplify simplify;
     ProgressBar mProgressBar;
 
 
@@ -86,7 +86,7 @@ public class MainActivity extends AppCompatActivity implements SimplifyAndroidPa
         // let the Simplify SDK marshall out the android pay activity results
         if (simplify.handleAndroidPayResult(requestCode, resultCode, data, this)) {
             return;
-        } else if (SimplifyKotlin.handle3DSResult(requestCode, resultCode, data, this)) {
+        } else if (Simplify.handle3DSResult(requestCode, resultCode, data, this)) {
             return;
         }
 
@@ -272,7 +272,7 @@ public class MainActivity extends AppCompatActivity implements SimplifyAndroidPa
         //       you MUST set the request code to Simplify.REQUEST_CODE_MASKED_WALLET
         WalletFragmentInitParams startParams = WalletFragmentInitParams.newBuilder()
                 .setMaskedWalletRequest(getMaskedWalletRequest())
-                .setMaskedWalletRequestCode(SimplifyKotlin.REQUEST_CODE_MASKED_WALLET)
+                .setMaskedWalletRequestCode(Simplify.REQUEST_CODE_MASKED_WALLET)
                 .build();
 
         walletFragment.initialize(startParams);
@@ -311,7 +311,7 @@ public class MainActivity extends AppCompatActivity implements SimplifyAndroidPa
                 // check if 3DS data present
                 if (cardToken.containsKey("card.secure3DData.isEnrolled") && (boolean) cardToken.get("card.secure3DData.isEnrolled")) {
                     // start 3DS activity
-                    SimplifyKotlin.start3DSActivity(MainActivity.this, cardToken);
+                    Simplify.start3DSActivity(MainActivity.this, cardToken);
                     return;
                 }
 

@@ -4,18 +4,18 @@ import android.app.Application;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 
-import com.simplify.android.sdk.SimplifyKotlin;
+import com.simplify.android.sdk.Simplify;
 
 public class SimplifyApplication extends Application {
 
-    SimplifyKotlin simplify;
+    Simplify simplify;
 
 
     @Override
     public void onCreate() {
         super.onCreate();
 
-        simplify = new SimplifyKotlin();
+        simplify = new Simplify();
 
         // init Simplify SDK with public api key stored in metadata
         try {
@@ -38,7 +38,7 @@ public class SimplifyApplication extends Application {
         }
     }
 
-    SimplifyKotlin getSimplify() {
+    Simplify getSimplify() {
         return simplify;
     }
 }

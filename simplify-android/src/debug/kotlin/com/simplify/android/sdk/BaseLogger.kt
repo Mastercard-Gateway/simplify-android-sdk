@@ -53,7 +53,7 @@ internal class BaseLogger : Logger {
 
     override fun logDebug(message: String) {
         if (message.isNotEmpty()) {
-            Log.d(SimplifyKotlin::class.java.simpleName, message)
+            Log.d(Simplify::class.java.simpleName, message)
         }
     }
 }

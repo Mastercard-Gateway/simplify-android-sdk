@@ -35,6 +35,4 @@ dependencies {
     implementation 'com.google.android.gms:play-services-wallet:16.0.1'
 
     implementation project(':simplify-android')
-
-    implementation 'com.msignia:msignia-sdk-release:6.1.29'
 }

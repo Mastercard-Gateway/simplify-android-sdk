@@ -28,7 +28,7 @@ import java.util.regex.Pattern
 /**
  * Creates an instance of the Simplify object
  */
-class SimplifyKotlin {
+class Simplify {
 
     /**
      * Initializes the SDK with an Simplify public API key

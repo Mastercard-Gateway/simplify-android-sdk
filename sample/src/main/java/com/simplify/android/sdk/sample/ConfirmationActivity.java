@@ -29,7 +29,7 @@ import com.google.android.gms.wallet.fragment.WalletFragmentOptions;
 import com.google.android.gms.wallet.fragment.WalletFragmentStyle;
 import com.simplify.android.sdk.SimplifyAndroidPayCallback;
 import com.simplify.android.sdk.SimplifyCallback;
-import com.simplify.android.sdk.SimplifyKotlin;
+import com.simplify.android.sdk.Simplify;
 import com.simplify.android.sdk.SimplifyMap;
 
 public class ConfirmationActivity extends AppCompatActivity implements SimplifyAndroidPayCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
@@ -39,7 +39,7 @@ public class ConfirmationActivity extends AppCompatActivity implements SimplifyA
     GoogleApiClient mGoogleApiClient;
     MaskedWallet mMaskedWallet;
     Button mPayButton;
-    SimplifyKotlin simplify;
+    Simplify simplify;
     ProgressBar mProgressBar;
 
 
@@ -204,7 +204,7 @@ public class ConfirmationActivity extends AppCompatActivity implements SimplifyA
 
         WalletFragmentInitParams startParams = WalletFragmentInitParams.newBuilder()
                 .setMaskedWallet(mMaskedWallet)
-                .setMaskedWalletRequestCode(SimplifyKotlin.REQUEST_CODE_MASKED_WALLET)
+                .setMaskedWalletRequestCode(Simplify.REQUEST_CODE_MASKED_WALLET)
                 .build();
 
         walletFragment.initialize(startParams);
@@ -224,7 +224,7 @@ public class ConfirmationActivity extends AppCompatActivity implements SimplifyA
             return;
         }
 
-        Wallet.Payments.loadFullWallet(mGoogleApiClient, getFullWalletRequest(), SimplifyKotlin.REQUEST_CODE_FULL_WALLET);
+        Wallet.Payments.loadFullWallet(mGoogleApiClient, getFullWalletRequest(), Simplify.REQUEST_CODE_FULL_WALLET);
     }
 
     FullWalletRequest getFullWalletRequest() {
