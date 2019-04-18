@@ -27,18 +27,18 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class SimplifyTest {
+//public class SimplifyTest {
 //
 //    Simplify simplify;
 //
-//    Simplify.AndroidPayCallback spyAndroidPayCallback;
+//    SimplifyAndroidPayCallback spyAndroidPayCallback;
 //    Intent mockResultData;
 //
 //    @Before
-//    public void setUp() throws Exception {
+//    public void setUp() {
 //        simplify = spy(new Simplify());
 //
-//        spyAndroidPayCallback = spy(new Simplify.AndroidPayCallback() {
+//        spyAndroidPayCallback = spy(new SimplifyAndroidPayCallback() {
 //            @Override
 //            public void onReceivedMaskedWallet(MaskedWallet maskedWallet) {
 //            }
@@ -58,7 +58,7 @@ public class SimplifyTest {
 //
 //        mockResultData = mock(Intent.class);
 //    }
-//
+
 //    @Test
 //    public void testValidateApiKeyReturnsFalseWhenIncorrectFormat() {
 //        String badUuidEncoded = "bm8gYSB1dWlk";
@@ -111,7 +111,7 @@ public class SimplifyTest {
 //            assertTrue(e instanceof IllegalArgumentException);
 //        }
 //    }
-//
+
 //    @Test
 //    public void testGetUrlWithLiveApiKey() {
 //        simplify.apiKey = "lvpb_123456789";
@@ -239,4 +239,4 @@ public class SimplifyTest {
 //        assertEquals(message.obj, cardToken);
 //        verify(mockHandler).sendMessage(message);
 //    }
-}
+//}

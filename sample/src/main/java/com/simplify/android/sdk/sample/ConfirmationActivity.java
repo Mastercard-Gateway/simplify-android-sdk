@@ -74,7 +74,7 @@ public class ConfirmationActivity extends AppCompatActivity implements SimplifyA
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         // let the Simplify SDK marshall out the android pay activity results
-        if (simplify.handleAndroidPayResult(requestCode, resultCode, data, this)) {
+        if (Simplify.handleAndroidPayResult(requestCode, resultCode, data, this)) {
             return;
         }
 

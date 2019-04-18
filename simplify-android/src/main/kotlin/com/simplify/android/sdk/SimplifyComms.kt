@@ -162,7 +162,7 @@ internal class SimplifyComms {
         return statusCode in 200..299
     }
 
-    private fun buildUserAgent(): String {
+    fun buildUserAgent(): String {
         return USER_AGENT + " (API " + Build.VERSION.SDK_INT + "; Device:" + Build.DEVICE + ")"
     }
 
