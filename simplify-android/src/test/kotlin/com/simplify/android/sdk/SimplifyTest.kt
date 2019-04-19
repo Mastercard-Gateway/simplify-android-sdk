@@ -1,8 +1,12 @@
 package com.simplify.android.sdk
 
+import android.app.Activity
+import android.content.Intent
 import com.google.android.gms.identity.intents.model.UserAddress
 import com.google.android.gms.wallet.FullWallet
+import com.google.android.gms.wallet.MaskedWallet
 import com.google.android.gms.wallet.PaymentMethodToken
+import com.google.android.gms.wallet.WalletConstants
 import com.nhaarman.mockitokotlin2.*
 import org.junit.After
 import org.junit.Before
@@ -27,6 +31,9 @@ class SimplifyTest {
     @Mock
     private lateinit var mockComms: SimplifyComms
 
+    @Spy
+    private lateinit var spyAndroidPayCallback: SimplifyAndroidPayCallback
+
 
 //    internal var spyAndroidPayCallback: SimplifyAndroidPayCallback
 //    internal var mockResultData: Intent
@@ -36,22 +43,12 @@ class SimplifyTest {
         MockitoAnnotations.initMocks(this)
         simplify.comms = mockComms
 
-//        spyAndroidPayCallback = spy(object : SimplifyAndroidPayCallback {
-//            override fun onReceivedMaskedWallet(maskedWallet: MaskedWallet) {}
-//
-//            override fun onReceivedFullWallet(fullWallet: FullWallet) {}
-//
-//            override fun onAndroidPayCancelled() {}
-//
-//            override fun onAndroidPayError(errorCode: Int) {}
-//        })
-
 //        mockResultData = mock(Intent::class.java)
     }
 
     @After
     fun tearDown() {
-        reset(simplify, mockComms)
+        reset(simplify, mockComms, spyAndroidPayCallback)
     }
 
     @Test
@@ -206,4 +203,64 @@ class SimplifyTest {
             }
         }
     }
+
+    @Test
+    fun testUnrecognizedRequestCodeReturnsFalse() {
+        val unrecognizedRequestCode = 123
+
+        val result = Simplify.handleAndroidPayResult(unrecognizedRequestCode, Activity.RESULT_OK, mock(), mock())
+
+        assertFalse("Should return false on unrecognized activity request code") { result }
+    }
+
+    @Test
+    fun testResultCancelledCallsCancelledMethodOnCallback() {
+        val result = Simplify.handleAndroidPayResult(Simplify.REQUEST_CODE_MASKED_WALLET, Activity.RESULT_CANCELED, mock(), spyAndroidPayCallback)
+
+        verify(spyAndroidPayCallback).onAndroidPayCancelled()
+        assertTrue("Should return true when handling cancel event") { result }
+    }
+
+    @Test
+    fun testErrorResultCallsErrorMethodOnCallback() {
+        val errorResultCode = 100
+
+        val mockData: Intent = mock()
+        whenever(mockData.getIntExtra(eq(WalletConstants.EXTRA_ERROR_CODE), any())).doReturn(errorResultCode)
+
+        val result = Simplify.handleAndroidPayResult(Simplify.REQUEST_CODE_MASKED_WALLET, errorResultCode, mockData, spyAndroidPayCallback)
+
+        verify(spyAndroidPayCallback).onAndroidPayError(errorResultCode)
+        assertTrue("Should return true when handling error event") { result }
+    }
+
+    @Test
+    fun testMaskedWalletResultReturnsWalletToCallback() {
+        val maskedWallet: MaskedWallet = mock()
+
+        val mockData: Intent = mock()
+        whenever(mockData.hasExtra(WalletConstants.EXTRA_MASKED_WALLET)).doReturn(true)
+        whenever(mockData.getParcelableExtra<MaskedWallet?>(WalletConstants.EXTRA_MASKED_WALLET)).doReturn(maskedWallet)
+
+        val result = Simplify.handleAndroidPayResult(Simplify.REQUEST_CODE_MASKED_WALLET, Activity.RESULT_OK, mockData, spyAndroidPayCallback)
+
+        verify(spyAndroidPayCallback).onReceivedMaskedWallet(maskedWallet)
+        assertTrue("Should return true when handling MaskedWallet event") { result }
+    }
+
+    @Test
+    fun testFullWalletResultReturnsWalletToCallback() {
+        val fullWallet: FullWallet = mock()
+
+        val mockData: Intent = mock()
+        whenever(mockData.hasExtra(WalletConstants.EXTRA_FULL_WALLET)).doReturn(true)
+        whenever(mockData.getParcelableExtra<FullWallet?>(WalletConstants.EXTRA_FULL_WALLET)).doReturn(fullWallet)
+
+        val result = Simplify.handleAndroidPayResult(Simplify.REQUEST_CODE_FULL_WALLET, Activity.RESULT_OK, mockData, spyAndroidPayCallback)
+
+        verify(spyAndroidPayCallback).onReceivedFullWallet(fullWallet)
+        assertTrue("Should return true when handling FullWallet event") { result }
+    }
+
+
 }

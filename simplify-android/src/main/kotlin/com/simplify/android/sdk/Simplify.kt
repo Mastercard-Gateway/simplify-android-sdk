@@ -190,7 +190,7 @@ class Simplify {
         internal const val REQUEST_3DS = 1002
 
 
-//        internal const val API_BASE_LIVE_URL = "https://api.simplify.com/v1/api"
+        //        internal const val API_BASE_LIVE_URL = "https://api.simplify.com/v1/api"
 //        internal const val API_BASE_SANDBOX_URL = "https://sandbox.simplify.com/v1/api"
         internal const val API_BASE_LIVE_URL = "https://api.uat.simplify.com/v1/api";
         internal const val API_BASE_SANDBOX_URL = "https://sandbox.uat.simplify.com/v1/api";
@@ -206,7 +206,7 @@ class Simplify {
          * <pre>`
          * protected void onActivityResult(int requestCode, int resultCode, Intent data) {
          *
-         * if (mSimplify.handleAndroidPayResult(requestCode, resultCode, data, this)) {
+         * if (Simplify.handleAndroidPayResult(requestCode, resultCode, data, this)) {
          * return;
          * }
          *
@@ -221,46 +221,22 @@ class Simplify {
          * @throws IllegalArgumentException If callback is null
          */
         @JvmStatic
-        fun handleAndroidPayResult(requestCode: Int, resultCode: Int, data: Intent?, callback: SimplifyAndroidPayCallback): Boolean {
-            if (requestCode != REQUEST_CODE_MASKED_WALLET && requestCode != REQUEST_CODE_FULL_WALLET) {
-                return false
-            }
-
-            when (resultCode) {
-                Activity.RESULT_OK -> if (data != null) {
-                    when (requestCode) {
-                        REQUEST_CODE_MASKED_WALLET -> {
-                            if (data.hasExtra(WalletConstants.EXTRA_MASKED_WALLET)) {
-                                val maskedWallet = data.getParcelableExtra<MaskedWallet>(WalletConstants.EXTRA_MASKED_WALLET)
-                                callback.onReceivedMaskedWallet(maskedWallet)
-                            }
-                            return true
+        fun handleAndroidPayResult(requestCode: Int, resultCode: Int, data: Intent, callback: SimplifyAndroidPayCallback): Boolean {
+            return when(requestCode) {
+                REQUEST_CODE_MASKED_WALLET, REQUEST_CODE_FULL_WALLET -> {
+                    when (resultCode) {
+                        Activity.RESULT_OK -> when (requestCode) {
+                            REQUEST_CODE_MASKED_WALLET -> callback.onReceivedMaskedWallet(data.getParcelableExtra(WalletConstants.EXTRA_MASKED_WALLET))
+                            REQUEST_CODE_FULL_WALLET -> callback.onReceivedFullWallet(data.getParcelableExtra(WalletConstants.EXTRA_FULL_WALLET))
                         }
-
-                        REQUEST_CODE_FULL_WALLET -> {
-                            if (data.hasExtra(WalletConstants.EXTRA_FULL_WALLET)) {
-                                val fullWallet = data.getParcelableExtra<FullWallet>(WalletConstants.EXTRA_FULL_WALLET)
-                                callback.onReceivedFullWallet(fullWallet)
-                            }
-                            return true
-                        }
-                    }
-                }
-
-                Activity.RESULT_CANCELED -> callback.onAndroidPayCancelled()
-
-                else -> {
-                    // retrieve the error code, if available
-                    var errorCode = -1
-                    if (data != null) {
-                        errorCode = data.getIntExtra(WalletConstants.EXTRA_ERROR_CODE, -1)
+                        Activity.RESULT_CANCELED -> callback.onAndroidPayCancelled()
+                        else -> callback.onAndroidPayError(data.getIntExtra(WalletConstants.EXTRA_ERROR_CODE, -1))
                     }
 
-                    callback.onAndroidPayError(errorCode)
+                    true
                 }
+                else -> false
             }
-
-            return false
         }
 
         /**
@@ -278,8 +254,9 @@ class Simplify {
                 throw IllegalArgumentException("The provided card token must contain 3DS data.")
             }
 
-            val intent = Simplify3DSecureActivity.buildIntent(activity, cardToken, title)
-            activity.startActivityForResult(intent, REQUEST_3DS)
+            Simplify3DSecureActivity.buildIntent(activity, cardToken, title).run {
+                activity.startActivityForResult(this, REQUEST_3DS)
+            }
         }
 
         /**
@@ -289,7 +266,7 @@ class Simplify {
          * <pre>`
          * protected void onActivityResult(int requestCode, int resultCode, Intent data) {
          *
-         * if (mSimplify.handle3DSResult(requestCode, resultCode, data, this)) {
+         * if (Simplify.handle3DSResult(requestCode, resultCode, data, this)) {
          * return;
          * }
          *
@@ -305,37 +282,30 @@ class Simplify {
          */
         @JvmStatic
         fun handle3DSResult(requestCode: Int, resultCode: Int, data: Intent, callback: SimplifySecure3DCallback): Boolean {
-            if (requestCode == REQUEST_3DS) {
-                if (resultCode == Activity.RESULT_OK) {
-                    val resultJson = data.getStringExtra(Simplify3DSecureActivity.EXTRA_RESULT)
-
-                    try {
-                        val obj = JSONObject(resultJson).getJSONObject("secure3d")
-
-                        when {
-                            obj.has("authenticated") -> {
-                                val success = obj.getBoolean("authenticated")
-                                callback.onSecure3DComplete(success)
+            return when(requestCode) {
+                REQUEST_3DS  -> {
+                    when (resultCode) {
+                        Activity.RESULT_OK -> {
+                            try {
+                                SimplifyMap(data.getStringExtra(Simplify3DSecureActivity.EXTRA_RESULT)).run {
+                                    when {
+                                        containsKey("secure3d.authenticated") -> callback.onSecure3DComplete(this["secure3D.authenticated"] as Boolean)
+                                        containsKey("secure3D.error") -> callback.onSecure3DError(this["secure3D.error.message"] as String)
+                                        else -> callback.onSecure3DError("Unknown error occurred during authentication")
+                                    }
+                                }
+                            } catch (e: Exception) {
+                                callback.onSecure3DError("Unable to read 3DS result")
                             }
-                            obj.has("error") -> {
-                                val message = obj.getJSONObject("error").getString("message")
-                                callback.onSecure3DError(message)
-                            }
-                            else -> callback.onSecure3DError("Unknown error occurred during authentication")
                         }
-
-                    } catch (e: Exception) {
-                        callback.onSecure3DError("Unable to read 3DS result")
+                        else -> callback.onSecure3DCancel()
                     }
 
-                } else {
-                    callback.onSecure3DCancel()
+                    true
                 }
-
-                return true
+                else -> false
             }
-
-            return false
         }
     }
 }
+
