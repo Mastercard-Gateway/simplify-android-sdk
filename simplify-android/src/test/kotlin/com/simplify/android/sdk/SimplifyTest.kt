@@ -19,6 +19,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import java.lang.Exception
 import java.lang.IllegalArgumentException
+import java.lang.RuntimeException
 import kotlin.test.*
 
 @RunWith(RobolectricTestRunner::class)
@@ -34,21 +35,19 @@ class SimplifyTest {
     @Spy
     private lateinit var spyAndroidPayCallback: SimplifyAndroidPayCallback
 
+    @Spy
+    private lateinit var spy3DSCallback: SimplifySecure3DCallback
 
-//    internal var spyAndroidPayCallback: SimplifyAndroidPayCallback
-//    internal var mockResultData: Intent
 
     @Before
     fun setUp() {
         MockitoAnnotations.initMocks(this)
         simplify.comms = mockComms
-
-//        mockResultData = mock(Intent::class.java)
     }
 
     @After
     fun tearDown() {
-        reset(simplify, mockComms, spyAndroidPayCallback)
+        reset(simplify, mockComms, spyAndroidPayCallback,  spy3DSCallback)
     }
 
     @Test
@@ -205,7 +204,7 @@ class SimplifyTest {
     }
 
     @Test
-    fun testUnrecognizedRequestCodeReturnsFalse() {
+    fun testAndroidPayUnrecognizedRequestCodeReturnsFalse() {
         val unrecognizedRequestCode = 123
 
         val result = Simplify.handleAndroidPayResult(unrecognizedRequestCode, Activity.RESULT_OK, mock(), mock())
@@ -262,5 +261,89 @@ class SimplifyTest {
         assertTrue("Should return true when handling FullWallet event") { result }
     }
 
+    @Test
+    fun test3DSUnrecognizedRequestCodeReturnsFalse() {
+        val unrecognizedRequestCode = 123
 
+        val result = Simplify.handle3DSResult(unrecognizedRequestCode, Activity.RESULT_OK, mock(), mock())
+
+        assertFalse("Should return false on unrecognized activity request code") { result }
+    }
+
+    @Test
+    fun test3DSResultCancelledCallsCancelledMethodOnCallback() {
+        val result = Simplify.handle3DSResult(Simplify.REQUEST_CODE_3DS, Activity.RESULT_CANCELED, mock(), spy3DSCallback)
+
+        verify(spy3DSCallback).onSecure3DCancel()
+        assertTrue("Should return true when handling cancel event") { result }
+    }
+
+    @Test
+    fun testErrorReading3DSResultCallsErrorOnCallback() {
+        val mockData: Intent = mock()
+        whenever(mockData.getStringExtra(Simplify3DSecureActivity.EXTRA_RESULT)).doThrow(RuntimeException())
+
+        val result = Simplify.handle3DSResult(Simplify.REQUEST_CODE_3DS, Activity.RESULT_OK, mockData, spy3DSCallback)
+
+        verify(spy3DSCallback).onSecure3DError(any())
+        assertTrue("Should return true when handling error event") { result }
+    }
+
+    @Test
+    fun testMissingSecure3dResponseDataCallsErrorOnCallback() {
+        val mockData: Intent = mock()
+        whenever(mockData.getStringExtra(Simplify3DSecureActivity.EXTRA_RESULT)).doReturn("{\"missing\":\"data\"}")
+
+        val result = Simplify.handle3DSResult(Simplify.REQUEST_CODE_3DS, Activity.RESULT_OK, mockData, spy3DSCallback)
+
+        verify(spy3DSCallback).onSecure3DError(any())
+        assertTrue("Should return true when handling error event") { result }
+    }
+
+    @Test
+    fun test3DSErrorInResponseCallsErrorOnCallback() {
+        val expectedErrorMessage = "3ds error message"
+
+        val mockData: Intent = mock()
+        whenever(mockData.getStringExtra(Simplify3DSecureActivity.EXTRA_RESULT)).doReturn("{\"secure3d\":{\"error\":{\"message\":\"$expectedErrorMessage\"}}}")
+
+        val result = Simplify.handle3DSResult(Simplify.REQUEST_CODE_3DS, Activity.RESULT_OK, mockData, spy3DSCallback)
+
+        verify(spy3DSCallback).onSecure3DError(expectedErrorMessage)
+        assertTrue("Should return true when handling error event") { result }
+    }
+
+    @Test
+    fun test3DSSuccessInResponseCallsCompleteOnCallback() {
+        val authenticated = true
+
+        val mockData: Intent = mock()
+        whenever(mockData.getStringExtra(Simplify3DSecureActivity.EXTRA_RESULT)).doReturn("{\"secure3d\":{\"authenticated\":$authenticated}}")
+
+        val result = Simplify.handle3DSResult(Simplify.REQUEST_CODE_3DS, Activity.RESULT_OK, mockData, spy3DSCallback)
+
+        verify(spy3DSCallback).onSecure3DComplete(authenticated)
+        assertTrue("Should return true when handling complete event") { result }
+    }
+
+    @Test
+    fun testStart3DSActivityThrowsExceptionIfMissingData() {
+        try {
+            Simplify.start3DSActivity(mock(), mock())
+            fail("Should have thrown an exception when no card.secure3DData provided")
+        } catch (e: Exception) {
+            assertTrue(e is IllegalArgumentException)
+        }
+    }
+
+    @Test
+    fun testStart3DSActivityUsesInternalRequestCode() {
+        val mockActivity: Activity = mock()
+        val cardToken = SimplifyMap()
+                .set("card.secure3DData", SimplifyMap())
+
+        Simplify.start3DSActivity(mockActivity, cardToken)
+
+        verify(mockActivity).startActivityForResult(any(), eq(Simplify.REQUEST_CODE_3DS))
+    }
 }

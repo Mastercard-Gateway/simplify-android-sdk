@@ -179,11 +179,11 @@ class Simplify3DSecureActivity : AppCompatActivity() {
             }
 
             return Intent(context, Simplify3DSecureActivity::class.java).apply {
-                putExtra(Simplify3DSecureActivity.EXTRA_ACS_URL, cardToken["card.secure3DData.acsUrl"] as String?)
-                putExtra(Simplify3DSecureActivity.EXTRA_PA_REQ, cardToken["card.secure3DData.paReq"] as String?)
-                putExtra(Simplify3DSecureActivity.EXTRA_MERCHANT_DATA, cardToken["card.secure3DData.md"] as String?)
-                putExtra(Simplify3DSecureActivity.EXTRA_TERM_URL, cardToken["card.secure3DData.termUrl"] as String?)
-                putExtra(Simplify3DSecureActivity.EXTRA_TITLE, title)
+                putExtra(EXTRA_ACS_URL, cardToken["card.secure3DData.acsUrl"] as String?)
+                putExtra(EXTRA_PA_REQ, cardToken["card.secure3DData.paReq"] as String?)
+                putExtra(EXTRA_MERCHANT_DATA, cardToken["card.secure3DData.md"] as String?)
+                putExtra(EXTRA_TERM_URL, cardToken["card.secure3DData.termUrl"] as String?)
+                putExtra(EXTRA_TITLE, title)
             }
         }
     }

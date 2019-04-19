@@ -7,10 +7,7 @@ import androidx.annotation.VisibleForTesting
 import com.google.android.gms.wallet.FullWallet
 import com.google.android.gms.wallet.MaskedWallet
 import com.google.android.gms.wallet.WalletConstants
-import com.google.gson.JsonObject
-import com.google.gson.JsonParser
 import io.reactivex.Single
-import org.json.JSONObject
 import java.util.*
 import java.util.regex.Pattern
 
@@ -187,7 +184,7 @@ class Simplify {
          * Will be used when calling the convenience methods [.start3DSActivity]
          * and [.handle3DSResult]
          */
-        internal const val REQUEST_3DS = 1002
+        internal const val REQUEST_CODE_3DS = 1002
 
 
         //        internal const val API_BASE_LIVE_URL = "https://api.simplify.com/v1/api"
@@ -255,7 +252,7 @@ class Simplify {
             }
 
             Simplify3DSecureActivity.buildIntent(activity, cardToken, title).run {
-                activity.startActivityForResult(this, REQUEST_3DS)
+                activity.startActivityForResult(this, REQUEST_CODE_3DS)
             }
         }
 
@@ -283,14 +280,14 @@ class Simplify {
         @JvmStatic
         fun handle3DSResult(requestCode: Int, resultCode: Int, data: Intent, callback: SimplifySecure3DCallback): Boolean {
             return when(requestCode) {
-                REQUEST_3DS  -> {
+                REQUEST_CODE_3DS  -> {
                     when (resultCode) {
                         Activity.RESULT_OK -> {
                             try {
                                 SimplifyMap(data.getStringExtra(Simplify3DSecureActivity.EXTRA_RESULT)).run {
                                     when {
-                                        containsKey("secure3d.authenticated") -> callback.onSecure3DComplete(this["secure3D.authenticated"] as Boolean)
-                                        containsKey("secure3D.error") -> callback.onSecure3DError(this["secure3D.error.message"] as String)
+                                        containsKey("secure3d.authenticated") -> callback.onSecure3DComplete(this["secure3d.authenticated"] as Boolean)
+                                        containsKey("secure3d.error") -> callback.onSecure3DError(this["secure3d.error.message"] as String)
                                         else -> callback.onSecure3DError("Unknown error occurred during authentication")
                                     }
                                 }
