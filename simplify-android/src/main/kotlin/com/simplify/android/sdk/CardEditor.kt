@@ -1,9 +1,9 @@
 package com.simplify.android.sdk
 
+import android.annotation.SuppressLint
 import android.app.Dialog
 import android.content.Context
 import android.content.DialogInterface
-import android.content.res.Resources
 import android.graphics.PorterDuff
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
@@ -21,39 +21,40 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import com.simplify.android.sdk.databinding.SimplifyCardeditorBinding
+import java.lang.StringBuilder
 import java.util.*
 
-class CardEditorKotlin constructor(context: Context, attrs: AttributeSet?, defStyle: Int) : LinearLayout(context, attrs, defStyle) {
+class CardEditor constructor(context: Context, attrs: AttributeSet?, defStyle: Int) : LinearLayout(context, attrs, defStyle) {
 
     /**
      * A callback interface used to report when the provided card information's
      * overall valid state changes
      */
     interface OnStateChangedListener {
-        fun onStateChange(cardEditor: CardEditorKotlin)
+        fun onStateChange(cardEditor: CardEditor)
     }
 
     private var binding: SimplifyCardeditorBinding
 
-    internal lateinit var numberIcon: Drawable
+    private lateinit var numberIcon: Drawable
 
-    internal lateinit var expirationDialog: Dialog
-    internal lateinit var monthPicker: NumberPicker
-    internal lateinit var yearPicker: NumberPicker
+    private lateinit var expirationDialog: Dialog
+    private lateinit var monthPicker: NumberPicker
+    private lateinit var yearPicker: NumberPicker
 
     private val cardNumberTextWatcher = CardNumberTextWatcher()
     private val cardCvcTextWatcher = CardCvcTextWatcher()
 
-    internal var cardBrand = CardBrand.UNKNOWN
-    internal var cardExpMonth: String? = null
-    internal var cardExpYear: String? = null
+    private var cardBrand = CardBrand.UNKNOWN
+    private var cardExpMonth: String? = null
+    private var cardExpYear: String? = null
 
-    internal var prevValid = false
-    internal var cardNumberValid = false
-    internal var cardExpiryValid = false
-    internal var cardCvcValid = false
+    private var prevValid = false
+    private var cardNumberValid = false
+    private var cardExpiryValid = false
+    private var cardCvcValid = false
 
-    internal var onStateChangedListeners = ArrayList<OnStateChangedListener>()
+    private var onStateChangedListeners = ArrayList<OnStateChangedListener>()
 
     init {
         // inflate view
@@ -72,9 +73,9 @@ class CardEditorKotlin constructor(context: Context, attrs: AttributeSet?, defSt
         binding.simplifyCvc.onFocusChangeListener = OnFocusChangeListener { _, hasFocus -> onCardCvcFocusChange(hasFocus) }
 
         // set customizations
-        val a = context.theme.obtainStyledAttributes(attrs, R.styleable.CardEditorKotlin, 0, 0)
-        setIconColor(a.getColor(R.styleable.CardEditorKotlin_iconColor, ContextCompat.getColor(context, R.color.simplify_default_icon)))
-        isEnabled = a.getBoolean(R.styleable.CardEditorKotlin_enabled, true)
+        val a = context.theme.obtainStyledAttributes(attrs, R.styleable.CardEditor, 0, 0)
+        setIconColor(a.getColor(R.styleable.CardEditor_iconColor, ContextCompat.getColor(context, R.color.simplify_default_icon)))
+        isEnabled = a.getBoolean(R.styleable.CardEditor_enabled, true)
 
         // init the expiry dialog
         if (!isInEditMode) {
@@ -220,13 +221,13 @@ class CardEditorKotlin constructor(context: Context, attrs: AttributeSet?, defSt
 
             expirationDialog = AlertDialog.Builder(context).setTitle(R.string.simplify_expiration)
                     .setView(datePickerView)
-                    .setPositiveButton(android.R.string.ok) { dialog, _ -> onExpiryClickOk(dialog)}
+                    .setPositiveButton(android.R.string.ok) { dialog, _ -> onExpiryClickOk(dialog) }
                     .setNegativeButton(android.R.string.cancel) { dialog, _ -> dialog.dismiss() }
                     .create()
         } else {
             expirationDialog = AlertDialog.Builder(context).setTitle(R.string.simplify_expiration)
                     .setView(datePickerView)
-                    .setPositiveButton(android.R.string.ok) { dialog, _ -> onExpiryClickOk(dialog)}
+                    .setPositiveButton(android.R.string.ok) { dialog, _ -> onExpiryClickOk(dialog) }
                     .setNegativeButton(android.R.string.cancel) { dialog, _ -> dialog.dismiss() }
                     .create()
         }
@@ -259,7 +260,7 @@ class CardEditorKotlin constructor(context: Context, attrs: AttributeSet?, defSt
                 cardNumberValid = false
                 binding.simplifyNumber.error = null
             } else {
-                cardBrand = CardBrand.detect(text)
+                cardBrand = detectCardBrand(text)
 
                 cardNumberValid = validateCardNumber(text, cardBrand)
                 binding.simplifyNumber.error = if (cardNumberValid) null else context.getString(R.string.simplify_invalid_card_number)
@@ -294,6 +295,7 @@ class CardEditorKotlin constructor(context: Context, attrs: AttributeSet?, defSt
         }
     }
 
+    @SuppressLint("SetTextI18n")
     private fun onExpiryClickOk(dialog: DialogInterface) {
         cardExpMonth = String.format(Locale.getDefault(), "%02d", monthPicker.value)
         cardExpYear = (yearPicker.value % 100).toString()
@@ -307,28 +309,18 @@ class CardEditorKotlin constructor(context: Context, attrs: AttributeSet?, defSt
         notifyStateChanged()
     }
 
-    /**
-     * Validates that a card number passes Luhn and matches minimum length
-     * requirements for a specific card type
-     *
-     * @param n The card number
-     * @param brand  The card type to validate against
-     * @return True or False
-     */
-    private fun validateCardNumber(n: String, brand: CardBrand): Boolean {
-        var number = n
-
+    private fun validateCardNumber(number: String, brand: CardBrand): Boolean {
         // numbers only, please
-        number = number.replace("[^\\d]+".toRegex(), "")
+        val clean = cleanCardNumber(number)
 
         // match against type prefix
-        if (!brand.prefixMatches(number)) {
+        if (!brand.prefixMatches(clean)) {
             return false
         }
 
         // ensure minimum length is satisfied
-        val length = number.length
-        if (length == 0 || length < brand.getMinLength()) {
+        val length = clean.length
+        if (length == 0 || length < brand.minLength) {
             return false
         }
 
@@ -336,7 +328,7 @@ class CardEditorKotlin constructor(context: Context, attrs: AttributeSet?, defSt
         run {
             var i = length - 2
             while (i >= 0) {
-                val c = number[i]
+                val c = clean[i]
                 if (c < '0' || c > '9') return false
 
                 // Multiply digit by 2.
@@ -352,7 +344,7 @@ class CardEditorKotlin constructor(context: Context, attrs: AttributeSet?, defSt
         run {
             var i = length - 1
             while (i >= 0) {
-                sum += number[i] - '0'
+                sum += clean[i] - '0'
                 i -= 2
             }
         }
@@ -361,13 +353,6 @@ class CardEditorKotlin constructor(context: Context, attrs: AttributeSet?, defSt
         return sum % 10 == 0
     }
 
-    /**
-     * Validates that a provided expiration date is in the future
-     *
-     * @param month The expiration month, format: MM
-     * @param year  The expiration year, format: YY
-     * @return True or False
-     */
     private fun validateCardExpiration(month: String, year: String): Boolean {
         if (month.trim().isEmpty() || year.trim().isEmpty()) {
             return false
@@ -393,17 +378,9 @@ class CardEditorKotlin constructor(context: Context, attrs: AttributeSet?, defSt
         return now.before(expire)
     }
 
-    /**
-     * Validates that a cvc code matches the length required by the card type
-     *
-     * @param cvc   The cvc code
-     * @param brand The card type
-     * @return True or False
-     */
     private fun validateCardCvc(cvc: String, brand: CardBrand): Boolean {
-        return cvc.trim().length == brand.getCvcLength()
+        return cvc.trim().length == brand.cvcLength
     }
-
 
     private fun setDividerColor(picker: NumberPicker, color: Int) {
         val numberPickerFields = NumberPicker::class.java.declaredFields
@@ -421,6 +398,40 @@ class CardEditorKotlin constructor(context: Context, attrs: AttributeSet?, defSt
         }
     }
 
+    private fun formatCardNumber(number: String, brand: CardBrand): String {
+        var clean = cleanCardNumber(number)
+        val sb = StringBuilder()
+
+        // prevent too many digits
+        if (clean.length > brand.maxLength) {
+            clean = clean.substring(0, brand.maxLength)
+        }
+
+        for (i in 0 until clean.length) {
+            when (brand) {
+                CardBrand.AMERICAN_EXPRESS -> if (i == 4 || i == 10) sb.append(" ")
+                else -> if (i > 0 && i % 4 == 0) sb.append(" ")
+            }
+
+            sb.append(clean[i])
+        }
+
+        return sb.toString()
+    }
+
+    private fun detectCardBrand(number: String): CardBrand {
+        val clean = cleanCardNumber(number)
+        CardBrand.values().forEach {
+            if (it.prefixMatches(clean)) return@detectCardBrand it
+        }
+
+        return CardBrand.UNKNOWN
+    }
+
+    private fun cleanCardNumber(number: String): String {
+        return number.replace("[^\\d]+".toRegex(), "")
+    }
+
     // ----------------------------------
     // Text Watchers
     // ----------------------------------
@@ -435,15 +446,10 @@ class CardEditorKotlin constructor(context: Context, attrs: AttributeSet?, defSt
             var text = editable.toString().replace("[^\\d]+".toRegex(), "")
 
             // detect the card type
-            cardBrand = CardBrand.detect(text)
-
-            // prevent too many digits
-            if (text.length > cardBrand.getMaxLength()) {
-                text = text.substring(0, cardBrand.getMaxLength())
-            }
+            cardBrand = detectCardBrand(text)
 
             // format the number
-            val value = cardBrand.format(text)
+            val value = formatCardNumber(text, cardBrand)
 
             // replace text with formatted
             binding.simplifyNumber.removeTextChangedListener(this)
@@ -452,18 +458,15 @@ class CardEditorKotlin constructor(context: Context, attrs: AttributeSet?, defSt
             binding.simplifyNumber.addTextChangedListener(this)
 
             // fetch the card brand drawable
-            var brandDrawable: Drawable? = numberIcon
-            if (!text.isEmpty()) {
-                when (cardBrand) {
-                    CardBrand.MASTERCARD -> brandDrawable = ContextCompat.getDrawable(context, R.drawable.simplify_mastercard)
-                    CardBrand.VISA -> brandDrawable = ContextCompat.getDrawable(context, R.drawable.simplify_visa)
-                    CardBrand.AMERICAN_EXPRESS -> brandDrawable = ContextCompat.getDrawable(context, R.drawable.simplify_amex)
-                    CardBrand.DISCOVER -> brandDrawable = ContextCompat.getDrawable(context, R.drawable.simplify_discover)
-                    CardBrand.DINERS -> brandDrawable = ContextCompat.getDrawable(context, R.drawable.simplify_diners)
-                    CardBrand.JCB -> brandDrawable = ContextCompat.getDrawable(context, R.drawable.simplify_jcb)
-                    CardBrand.UNKNOWN -> brandDrawable = ContextCompat.getDrawable(context, R.drawable.simplify_generic)
-                }
-            }
+            val brandDrawable: Drawable? = if (value.isEmpty()) numberIcon else ContextCompat.getDrawable(context, when (cardBrand) {
+                CardBrand.MASTERCARD -> R.drawable.simplify_mastercard
+                CardBrand.VISA -> R.drawable.simplify_visa
+                CardBrand.AMERICAN_EXPRESS -> R.drawable.simplify_amex
+                CardBrand.DISCOVER -> R.drawable.simplify_discover
+                CardBrand.DINERS -> R.drawable.simplify_diners
+                CardBrand.JCB -> R.drawable.simplify_jcb
+                CardBrand.UNKNOWN -> R.drawable.simplify_generic
+            })
 
             // change the drawable to match type
             binding.simplifyNumber.setCompoundDrawablesWithIntrinsicBounds(brandDrawable, null, null, null)
@@ -485,8 +488,8 @@ class CardEditorKotlin constructor(context: Context, attrs: AttributeSet?, defSt
             var text = editable.toString()
 
             // prevent too many digits
-            if (text.length > cardBrand.getCvcLength()) {
-                text = text.substring(0, cardBrand.getCvcLength())
+            if (text.length > cardBrand.cvcLength) {
+                text = text.substring(0, cardBrand.cvcLength)
             }
 
             // replace text with formatted
@@ -500,6 +503,22 @@ class CardEditorKotlin constructor(context: Context, attrs: AttributeSet?, defSt
             binding.simplifyCvc.error = null
 
             notifyStateChanged()
+        }
+    }
+
+    private enum class CardBrand constructor(val minLength: Int, val maxLength: Int, val cvcLength: Int, pattern: String? = null) {
+        VISA(13, 19, 3, "^4\\d*"),
+        MASTERCARD(16, 16, 3, "^(?:5[1-5]|67)\\d*"),
+        AMERICAN_EXPRESS(15, 15, 4, "^3[47]\\d*"),
+        DISCOVER(16, 16, 3, "^6(?:011|4[4-9]|5)\\d*"),
+        DINERS(14, 16, 3, "^3(?:0(?:[0-5]|9)|[689])\\d*"),
+        JCB(16, 16, 3, "^35(?:2[89]|[3-8])\\d*"),
+        UNKNOWN(13, 19, 3);
+
+        val patternRegex: Regex? = pattern?.toRegex()
+
+        fun prefixMatches(number: String): Boolean {
+            return patternRegex?.matches(number) ?: true
         }
     }
 }
