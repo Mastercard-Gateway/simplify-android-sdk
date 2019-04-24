@@ -28,9 +28,9 @@ public class SimplifyApplication extends Application {
             }
 
             // init android pay public key
-            String androidPayPublicKey = bundle.getString("com.simplify.android.sdk.androidPayPublicKey", null);
-            if (androidPayPublicKey != null) {
-                simplify.setAndroidPayPublicKey(androidPayPublicKey);
+            String googlePayPublicKey = bundle.getString("com.simplify.android.sdk.androidPayPublicKey", null);
+            if (googlePayPublicKey != null) {
+                simplify.setGooglePayPublicKey(googlePayPublicKey);
             }
 
         } catch (Exception e) {

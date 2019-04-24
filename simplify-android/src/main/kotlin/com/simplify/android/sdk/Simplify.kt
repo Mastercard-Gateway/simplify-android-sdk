@@ -4,10 +4,13 @@ import android.app.Activity
 import android.content.Intent
 import android.util.Base64
 import androidx.annotation.VisibleForTesting
-import com.google.android.gms.wallet.FullWallet
-import com.google.android.gms.wallet.MaskedWallet
-import com.google.android.gms.wallet.WalletConstants
+import com.google.android.gms.common.api.Status
+import com.google.android.gms.wallet.AutoResolveHelper
+import com.google.android.gms.wallet.PaymentData
+import com.google.android.gms.wallet.PaymentDataRequest
+import com.google.android.gms.wallet.PaymentsClient
 import io.reactivex.Single
+import java.nio.charset.Charset
 import java.util.*
 import java.util.regex.Pattern
 
@@ -17,14 +20,12 @@ import java.util.regex.Pattern
  * The public interface to the Simplify SDK
  *
  * Example set up:
- * <br></br>
- * `Simplify simplify = new Simplify();
+ * <br>
+ * <pre>
+ * Simplify simplify = new Simplify();
  * simplify.setApiKey("YOUR_SIMPLIFY_PUBLIC_API_KEY");
- * simplify.setAndroidPayPublicKey("YOUR_ANDROID_PAY_PUBLIC_KEY");`
- *
- */
-/**
- * Creates an instance of the Simplify object
+ * simplify.setGooglePayPublicKey("YOUR_ANDROID_PAY_PUBLIC_KEY");
+ * </pre>
  */
 class Simplify {
 
@@ -40,12 +41,11 @@ class Simplify {
         }
 
     /**
-     * Initializes the SDK with the Android Pay public key provided by Simplify.
-     * <br/>
-     * This value is optional and is used internally to encrypt card information during an Android Pay transaction.
+     * Initializes the SDK with the Google Pay public key provided by Simplify.
+     * <br>This value is optional and is used internally to encrypt card information during an Android Pay transaction.
      * It can be retrieved from your Simplify account settings and is different from your API key.
      */
-    var androidPayPublicKey: String? = null
+    var googlePayPublicKey: String? = null
 
     @VisibleForTesting
     internal var comms = SimplifyComms()
@@ -60,73 +60,50 @@ class Simplify {
      *
      * Performs an asynchronous request to the Simplify server to retrieve a card token
      * that can then be used to process a payment.
-     * <br></br>Includes optional 3DS request data required to initiate a 3DS authentication process.
+     * <br>Includes optional 3DS request data required to initiate a 3DS authentication process.
      *
      * @param card                A valid card object
      * @param secure3DRequestData Data required to initiate 3DS authentication. may be null
      * @param callback            The callback to invoke after the request is complete
      */
     @JvmOverloads
-    fun createCardToken(card: SimplifyMap, secure3DRequestData: SimplifyMap? = null, callback: SimplifyCallback) {
-        val request = buildCreateCardTokenRequest(card, secure3DRequestData)
-        comms.runSimplifyRequest(request, callback)
-    }
+    fun createCardToken(card: SimplifyMap, secure3DRequestData: SimplifyMap? = null, callback: SimplifyCallback) =
+            buildCreateCardTokenRequest(card, secure3DRequestData).run { comms.runSimplifyRequest(this, callback) }
 
     /**
      *
      * Builds a Single to retrieve a card token that can then be used to process a payment
-     * <br></br>Includes 3DS request data required to initiate a 3DS authentication process.
-     *
-     *
-     * Does not operate on any particular scheduler
+     * <br>Includes optional 3DS request data required to initiate a 3DS authentication process.
+     * <br>Does not operate on any particular scheduler
      *
      * @param card                A valid card object
      * @param secure3DRequestData Data requires to initiate 3DS authentication
      * @return A Single of a SimplifyMap containing card token information
      */
     @JvmOverloads
-    fun createCardToken(card: SimplifyMap, secure3DRequestData: SimplifyMap? = null): Single<SimplifyMap> {
-        val request = buildCreateCardTokenRequest(card, secure3DRequestData)
-        return comms.runSimplifyRequest(request)
-    }
+    fun createCardToken(card: SimplifyMap, secure3DRequestData: SimplifyMap? = null): Single<SimplifyMap> =
+            buildCreateCardTokenRequest(card, secure3DRequestData).run(comms::runSimplifyRequest)
 
     /**
      * Performs an asynchronous request to the Simplify server to retrieve a card token
      * that can then be used to process a payment
      *
-     * @param fullWallet A full wallet response from Android Pay
+     * @param paymentData A [PaymentData] object retrieved from the Google Pay API
      * @param callback   The callback to invoke after the request is complete
      */
-    fun createAndroidPayCardToken(fullWallet: FullWallet, callback: SimplifyCallback) {
-        createCardToken(buildAndroidPayCard(fullWallet), callback = callback)
-    }
+    fun createGooglePayCardToken(paymentData: PaymentData, callback: SimplifyCallback) =
+            createCardToken(buildGooglePayCard(paymentData), callback = callback)
 
     /**
-     *
      * Builds a Single to retrieve a card token that can then be used to process a payment
+     * <br>Does not operate on any particular scheduler
      *
-     * Does not operate on any particular scheduler
-     *
-     * @param fullWallet A full wallet response from Android Pay
+     * @param paymentData A [PaymentData] object retrieved from the Google Pay API
      * @return A Single of a SimplifyMap containing card token information
      */
-    fun createAndroidPayCardToken(fullWallet: FullWallet): Single<SimplifyMap> {
-        return createCardToken(buildAndroidPayCard(fullWallet))
-    }
+    fun createGooglePayCardToken(paymentData: PaymentData): Single<SimplifyMap> =
+            createCardToken(buildGooglePayCard(paymentData))
 
-    private fun validateApiKey(apiKey: String?): Boolean {
-        val m = Pattern.compile(PATTERN_API_KEY).matcher(apiKey)
-        return if (m.matches()) {
-            try {
-                // parse UUID
-                val uuidStr = String(Base64.decode(m.group(1), Base64.NO_PADDING))
-                UUID.fromString(uuidStr)
-                true
-            } catch (e: Exception) {
-                false
-            }
-        } else false
-    }
 
     private fun buildCreateCardTokenRequest(card: SimplifyMap, secure3DRequestData: SimplifyMap?): SimplifyRequest {
         val payload = SimplifyMap()
@@ -144,97 +121,101 @@ class Simplify {
         )
     }
 
-    private fun buildAndroidPayCard(fullWallet: FullWallet): SimplifyMap {
-        return fullWallet.buyerBillingAddress.let { address ->
-            SimplifyMap()
-                    .set("cardEntryMode", "ANDROID_PAY_IN_APP")
-                    .set("androidPayData", SimplifyMap()
-                            .set("publicKey", androidPayPublicKey)
-                            .set("paymentToken", SimplifyMap(fullWallet.paymentMethodToken.token)))
-                    .set("addressLine1", address.address1)
-                    .set("addressLine2", address.address2)
-                    .set("addressCity", address.locality)
-                    .set("addressState", address.administrativeArea)
-                    .set("addressZip", address.postalCode)
-                    .set("addressCountry", address.countryCode)
-                    .set("customer.name", address.name)
-                    .set("customer.email", fullWallet.email)
-        }
+    private fun buildGooglePayCard(paymentData: PaymentData): SimplifyMap {
+        val paymentDataJson = paymentData.toJson()
+        val paymentDataMap = SimplifyMap(paymentDataJson)
+
+        // nested json string
+        val token = SimplifyMap(paymentDataMap["paymentMethodData.tokenizationData.token"] as String)
+
+        // another nested json string
+        val signedMessage = SimplifyMap(token["signedMessage"] as String)
+
+        return SimplifyMap()
+                .set("cardEntryMode", "ANDROID_PAY_IN_APP")
+                .set("androidPayData", SimplifyMap()
+                        .set("publicKey", googlePayPublicKey)
+                        .set("paymentToken", signedMessage))
     }
+
+    private fun validateApiKey(apiKey: String?): Boolean =
+            apiKey?.let {
+                PATTERN_API_KEY.toRegex().find(it)?.groupValues?.get(1)?.let { group ->
+                    try {
+                        // parse UUID
+                        UUID.fromString(Base64.decode(group, Base64.NO_PADDING).toString(Charset.defaultCharset()))
+                        true
+                    } catch (e: Exception) {
+                        false
+                    }
+                }
+            } ?: false
 
     companion object {
 
-        /**
-         * Request code to use with WalletFragment when requesting a [MaskedWallet]
-         * <br/>
-         * **required if using [.handleAndroidPayResult]**
-         */
-        const val REQUEST_CODE_MASKED_WALLET = 1000
+        @VisibleForTesting
+        internal const val REQUEST_CODE_3DS = 1000
 
-        /**
-         * Request code to use with WalletFragment when requesting a [FullWallet]
-         * <br/>
-         * **required if using [.handleAndroidPayResult]**
-         */
-        const val REQUEST_CODE_FULL_WALLET = 1001
+        @VisibleForTesting
+        internal const val REQUEST_CODE_GOOGLE_PAY_LOAD_PAYMENT_DATA = 1001
 
-        /**
-         * A request code to use when launching the 3DS activity for result.
-         * <br>
-         * Will be used when calling the convenience methods [.start3DSActivity]
-         * and [.handle3DSResult]
-         */
-        internal const val REQUEST_CODE_3DS = 1002
+        @VisibleForTesting
+        internal const val API_BASE_LIVE_URL = "https://api.simplify.com/v1/api"
 
+        @VisibleForTesting
+        internal const val API_BASE_SANDBOX_URL = "https://sandbox.simplify.com/v1/api"
 
-        //        internal const val API_BASE_LIVE_URL = "https://api.simplify.com/v1/api"
-//        internal const val API_BASE_SANDBOX_URL = "https://sandbox.simplify.com/v1/api"
-        internal const val API_BASE_LIVE_URL = "https://api.uat.simplify.com/v1/api";
-        internal const val API_BASE_SANDBOX_URL = "https://sandbox.uat.simplify.com/v1/api";
+        //        @VisibleForTesting internal const val API_BASE_LIVE_URL = "https://api.uat.simplify.com/v1/api";
+//        @VisibleForTesting internal const val API_BASE_SANDBOX_URL = "https://sandbox.uat.simplify.com/v1/api";
+
+        @VisibleForTesting
         internal const val API_PATH_CARDTOKEN = "/payment/cardToken"
-        internal const val PATTERN_API_KEY = "(?:lv|sb)pb_(.+)"
-        internal const val LIVE_KEY_PREFIX = "lvpb_"
+
+        private const val PATTERN_API_KEY = "(?:lv|sb)pb_(.+)"
+        private const val LIVE_KEY_PREFIX = "lvpb_"
 
 
         /**
+         * A convenience method for initializing the request to get Google Pay card info
          *
-         * Convenience method to handle the Android Pay transaction lifecycle. You may use this method within
-         * onActivityResult() to delegate the transaction to an [SimplifyAndroidPayCallback].
-         * <pre>`
-         * protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-         *
-         * if (Simplify.handleAndroidPayResult(requestCode, resultCode, data, this)) {
-         * return;
-         * }
-         *
-         * // ...
-         * }`</pre>
-         *
-         * @param requestCode The activity request code
-         * @param resultCode  The activity result code
-         * @param data        Data returned by activity
-         * @param callback    The [SimplifyAndroidPayCallback]
-         * @return True if handled, False otherwise
-         * @throws IllegalArgumentException If callback is null
+         * @param paymentsClient An instance of the PaymentClient
+         * @param request A properly formatted PaymentDataRequest
+         * @param activity The calling activity
+         * @see [Payments Client](https://developers.google.com/pay/api/android/guides/tutorial.paymentsclient)
+         * @see [Payment Data Request](https://developers.google.com/pay/api/android/guides/tutorial.paymentdatarequest)
          */
         @JvmStatic
-        fun handleAndroidPayResult(requestCode: Int, resultCode: Int, data: Intent, callback: SimplifyAndroidPayCallback): Boolean {
-            return when(requestCode) {
-                REQUEST_CODE_MASKED_WALLET, REQUEST_CODE_FULL_WALLET -> {
-                    when (resultCode) {
-                        Activity.RESULT_OK -> when (requestCode) {
-                            REQUEST_CODE_MASKED_WALLET -> callback.onReceivedMaskedWallet(data.getParcelableExtra(WalletConstants.EXTRA_MASKED_WALLET))
-                            REQUEST_CODE_FULL_WALLET -> callback.onReceivedFullWallet(data.getParcelableExtra(WalletConstants.EXTRA_FULL_WALLET))
-                        }
-                        Activity.RESULT_CANCELED -> callback.onAndroidPayCancelled()
-                        else -> callback.onAndroidPayError(data.getIntExtra(WalletConstants.EXTRA_ERROR_CODE, -1))
-                    }
+        fun requestGooglePayData(paymentsClient: PaymentsClient, request: PaymentDataRequest, activity: Activity) =
+                AutoResolveHelper.resolveTask(paymentsClient.loadPaymentData(request), activity, REQUEST_CODE_GOOGLE_PAY_LOAD_PAYMENT_DATA)
 
-                    true
+        /**
+         * A convenience method for handling activity result messages returned from Google Pay.
+         * This method should be called withing the calling Activity's onActivityResult() lifecycle method.
+         * This helper only works if the Google Pay dialog was launched using the
+         * [Simplify.requestGooglePayData] method.
+         *
+         * @param requestCode The request code returning from the activity result
+         * @param resultCode The result code returning from the activity result
+         * @param data The intent data returning from the activity result
+         * @param callback An implementation of [SimplifyGooglePayCallback]
+         * @return True if handled, False otherwise
+         * @see Simplify.requestGooglePayData
+         */
+        @JvmStatic
+        fun handleGooglePayResult(requestCode: Int, resultCode: Int, data: Intent?, callback: SimplifyGooglePayCallback): Boolean =
+                when (requestCode) {
+                    REQUEST_CODE_GOOGLE_PAY_LOAD_PAYMENT_DATA -> {
+                        when (resultCode) {
+                            Activity.RESULT_OK -> data?.run(PaymentData::getFromIntent)?.run(callback::onReceivedPaymentData)
+                                    ?: callback.onGooglePayError(Status.RESULT_INTERNAL_ERROR)
+                            Activity.RESULT_CANCELED -> callback.onGooglePayCancelled()
+                            AutoResolveHelper.RESULT_ERROR -> AutoResolveHelper.getStatusFromIntent(data)?.run(callback::onGooglePayError)
+                        }
+
+                        true
+                    }
+                    else -> false
                 }
-                else -> false
-            }
-        }
 
         /**
          * Starts the [Simplify3DSecureActivity] for result, and initializes it with the required 3DS info
@@ -246,21 +227,19 @@ class Simplify {
          */
         @JvmOverloads
         @JvmStatic
-        fun start3DSActivity(activity: Activity, cardToken: SimplifyMap, title: String? = null) {
-            if (!cardToken.containsKey("card.secure3DData")) {
-                throw IllegalArgumentException("The provided card token must contain 3DS data.")
-            }
-
-            Simplify3DSecureActivity.buildIntent(activity, cardToken, title).run {
-                activity.startActivityForResult(this, REQUEST_CODE_3DS)
-            }
-        }
+        fun start3DSActivity(activity: Activity, cardToken: SimplifyMap, title: String? = null) =
+                cardToken["card.secure3DData"]?.run {
+                    Simplify3DSecureActivity.buildIntent(activity, cardToken, title).run {
+                        activity.startActivityForResult(this, REQUEST_CODE_3DS)
+                    }
+                }
+                        ?: throw IllegalArgumentException("The provided card token must contain 3DS data.")
 
         /**
          *
          * Convenience method to handle the 3DS authentication lifecycle. You may use this method within
-         * onActivityResult() to delegate the transaction to a [SimplifySecure3DCallback].
-         * <pre>`
+         * [Activity.onActivityResult] to delegate the transaction to a [SimplifySecure3DCallback].
+         * <pre>
          * protected void onActivityResult(int requestCode, int resultCode, Intent data) {
          *
          * if (Simplify.handle3DSResult(requestCode, resultCode, data, this)) {
@@ -268,7 +247,7 @@ class Simplify {
          * }
          *
          * // ...
-         * }`</pre>
+         * }</pre>
          *
          * @param requestCode The activity request code
          * @param resultCode  The activity result code
@@ -278,31 +257,30 @@ class Simplify {
          * @throws IllegalArgumentException If callback is null
          */
         @JvmStatic
-        fun handle3DSResult(requestCode: Int, resultCode: Int, data: Intent, callback: SimplifySecure3DCallback): Boolean {
-            return when(requestCode) {
-                REQUEST_CODE_3DS  -> {
-                    when (resultCode) {
-                        Activity.RESULT_OK -> {
-                            try {
-                                SimplifyMap(data.getStringExtra(Simplify3DSecureActivity.EXTRA_RESULT)).run {
-                                    when {
-                                        containsKey("secure3d.authenticated") -> callback.onSecure3DComplete(this["secure3d.authenticated"] as Boolean)
-                                        containsKey("secure3d.error") -> callback.onSecure3DError(this["secure3d.error.message"] as String)
-                                        else -> callback.onSecure3DError("Unknown error occurred during authentication")
+        fun handle3DSResult(requestCode: Int, resultCode: Int, data: Intent?, callback: SimplifySecure3DCallback): Boolean =
+                when (requestCode) {
+                    REQUEST_CODE_3DS -> {
+                        when (resultCode) {
+                            Activity.RESULT_OK -> {
+                                try {
+                                    SimplifyMap(data!!.getStringExtra(Simplify3DSecureActivity.EXTRA_RESULT)).run {
+                                        when {
+                                            containsKey("secure3d.authenticated") -> callback.onSecure3DComplete(this["secure3d.authenticated"] as Boolean)
+                                            containsKey("secure3d.error") -> callback.onSecure3DError(this["secure3d.error.message"] as String)
+                                            else -> callback.onSecure3DError("Unknown error occurred during authentication")
+                                        }
                                     }
+                                } catch (e: Exception) {
+                                    callback.onSecure3DError("Unable to read 3DS result")
                                 }
-                            } catch (e: Exception) {
-                                callback.onSecure3DError("Unable to read 3DS result")
                             }
+                            else -> callback.onSecure3DCancel()
                         }
-                        else -> callback.onSecure3DCancel()
-                    }
 
-                    true
+                        true
+                    }
+                    else -> false
                 }
-                else -> false
-            }
-        }
     }
 }
 
