@@ -27,7 +27,6 @@ import com.google.android.gms.wallet.fragment.WalletFragmentInitParams;
 import com.google.android.gms.wallet.fragment.WalletFragmentMode;
 import com.google.android.gms.wallet.fragment.WalletFragmentOptions;
 import com.google.android.gms.wallet.fragment.WalletFragmentStyle;
-import com.simplify.android.sdk.SimplifyAndroidPayCallback;
 import com.simplify.android.sdk.SimplifyCallback;
 import com.simplify.android.sdk.Simplify;
 import com.simplify.android.sdk.SimplifyMap;

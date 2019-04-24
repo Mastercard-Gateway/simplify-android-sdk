@@ -33,6 +33,7 @@
             android:name=".MainActivity"
             android:screenOrientation="portrait" >
             <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -45,7 +46,7 @@
         <activity android:name=".ThankYouActivity"
             android:screenOrientation="portrait"/>
 
-        <activity android:name="com.simplify.android.sdk.Simplify3DSecureActivity"
+        <activity android:name="com.simplify.android.sdk.SimplifySecure3DActivity"
             android:screenOrientation="portrait"/>
 
     </application>

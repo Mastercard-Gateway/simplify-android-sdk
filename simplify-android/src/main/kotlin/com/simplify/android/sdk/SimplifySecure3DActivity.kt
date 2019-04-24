@@ -16,7 +16,7 @@ import android.webkit.WebViewClient
 import androidx.annotation.RequiresApi
 import java.lang.IllegalArgumentException
 
-class Simplify3DSecureActivity : AppCompatActivity() {
+class SimplifySecure3DActivity : AppCompatActivity() {
 
     private lateinit var webView: WebView
 
@@ -164,7 +164,7 @@ class Simplify3DSecureActivity : AppCompatActivity() {
         private const val PLACEHOLDER_TERM_URL = "{{{termUrl}}}"
 
         /**
-         * Construct an intent to the [Simplify3DSecureActivity] activity, adding the relevant 3DS data from the card token as intent extras
+         * Construct an intent to the [SimplifySecure3DActivity] activity, adding the relevant 3DS data from the card token as intent extras
          *
          * @param context The calling context
          * @param cardToken The card token used for a 3DS transaction
@@ -178,7 +178,7 @@ class Simplify3DSecureActivity : AppCompatActivity() {
                 throw IllegalArgumentException("The provided card token must contain 3DS data.")
             }
 
-            return Intent(context, Simplify3DSecureActivity::class.java).apply {
+            return Intent(context, SimplifySecure3DActivity::class.java).apply {
                 putExtra(EXTRA_ACS_URL, cardToken["card.secure3DData.acsUrl"] as String?)
                 putExtra(EXTRA_PA_REQ, cardToken["card.secure3DData.paReq"] as String?)
                 putExtra(EXTRA_MERCHANT_DATA, cardToken["card.secure3DData.md"] as String?)

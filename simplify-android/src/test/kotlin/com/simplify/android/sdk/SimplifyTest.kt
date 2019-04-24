@@ -272,7 +272,7 @@ class SimplifyTest {
     @Test
     fun testErrorReading3DSResultCallsErrorOnCallback() {
         val mockData: Intent = mock()
-        whenever(mockData.getStringExtra(Simplify3DSecureActivity.EXTRA_RESULT)).doThrow(RuntimeException())
+        whenever(mockData.getStringExtra(SimplifySecure3DActivity.EXTRA_RESULT)).doThrow(RuntimeException())
 
         val result = Simplify.handle3DSResult(Simplify.REQUEST_CODE_3DS, Activity.RESULT_OK, mockData, spy3DSCallback)
 
@@ -283,7 +283,7 @@ class SimplifyTest {
     @Test
     fun testMissingSecure3dResponseDataCallsErrorOnCallback() {
         val mockData: Intent = mock()
-        whenever(mockData.getStringExtra(Simplify3DSecureActivity.EXTRA_RESULT)).doReturn("{\"missing\":\"data\"}")
+        whenever(mockData.getStringExtra(SimplifySecure3DActivity.EXTRA_RESULT)).doReturn("{\"missing\":\"data\"}")
 
         val result = Simplify.handle3DSResult(Simplify.REQUEST_CODE_3DS, Activity.RESULT_OK, mockData, spy3DSCallback)
 
@@ -296,7 +296,7 @@ class SimplifyTest {
         val expectedErrorMessage = "3ds error message"
 
         val mockData: Intent = mock()
-        whenever(mockData.getStringExtra(Simplify3DSecureActivity.EXTRA_RESULT)).doReturn("{\"secure3d\":{\"error\":{\"message\":\"$expectedErrorMessage\"}}}")
+        whenever(mockData.getStringExtra(SimplifySecure3DActivity.EXTRA_RESULT)).doReturn("{\"secure3d\":{\"error\":{\"message\":\"$expectedErrorMessage\"}}}")
 
         val result = Simplify.handle3DSResult(Simplify.REQUEST_CODE_3DS, Activity.RESULT_OK, mockData, spy3DSCallback)
 
@@ -309,7 +309,7 @@ class SimplifyTest {
         val authenticated = true
 
         val mockData: Intent = mock()
-        whenever(mockData.getStringExtra(Simplify3DSecureActivity.EXTRA_RESULT)).doReturn("{\"secure3d\":{\"authenticated\":$authenticated}}")
+        whenever(mockData.getStringExtra(SimplifySecure3DActivity.EXTRA_RESULT)).doReturn("{\"secure3d\":{\"authenticated\":$authenticated}}")
 
         val result = Simplify.handle3DSResult(Simplify.REQUEST_CODE_3DS, Activity.RESULT_OK, mockData, spy3DSCallback)
 

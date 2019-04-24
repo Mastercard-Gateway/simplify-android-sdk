@@ -12,7 +12,6 @@ import com.google.android.gms.wallet.PaymentsClient
 import io.reactivex.Single
 import java.nio.charset.Charset
 import java.util.*
-import java.util.regex.Pattern
 
 
 /**
@@ -91,7 +90,7 @@ class Simplify {
      * @param paymentData A [PaymentData] object retrieved from the Google Pay API
      * @param callback   The callback to invoke after the request is complete
      */
-    fun createGooglePayCardToken(paymentData: PaymentData, callback: SimplifyCallback) =
+    internal fun createGooglePayCardToken(paymentData: PaymentData, callback: SimplifyCallback) =
             createCardToken(buildGooglePayCard(paymentData), callback = callback)
 
     /**
@@ -101,7 +100,7 @@ class Simplify {
      * @param paymentData A [PaymentData] object retrieved from the Google Pay API
      * @return A Single of a SimplifyMap containing card token information
      */
-    fun createGooglePayCardToken(paymentData: PaymentData): Single<SimplifyMap> =
+    internal fun createGooglePayCardToken(paymentData: PaymentData): Single<SimplifyMap> =
             createCardToken(buildGooglePayCard(paymentData))
 
 
@@ -138,18 +137,19 @@ class Simplify {
                         .set("paymentToken", signedMessage))
     }
 
-    private fun validateApiKey(apiKey: String?): Boolean =
-            apiKey?.let {
-                PATTERN_API_KEY.toRegex().find(it)?.groupValues?.get(1)?.let { group ->
-                    try {
-                        // parse UUID
-                        UUID.fromString(Base64.decode(group, Base64.NO_PADDING).toString(Charset.defaultCharset()))
-                        true
-                    } catch (e: Exception) {
-                        false
-                    }
+    private fun validateApiKey(apiKey: String?): Boolean {
+        return apiKey?.let {
+            PATTERN_API_KEY.toRegex().find(it)?.groupValues?.get(1)?.let { group ->
+                try {
+                    // parse UUID
+                    UUID.fromString(Base64.decode(group, Base64.NO_PADDING).toString(Charset.defaultCharset()))
+                    true
+                } catch (e: Exception) {
+                    false
                 }
-            } ?: false
+            }
+        } ?: false
+    }
 
     companion object {
 
@@ -185,8 +185,9 @@ class Simplify {
          * @see [Payment Data Request](https://developers.google.com/pay/api/android/guides/tutorial.paymentdatarequest)
          */
         @JvmStatic
-        fun requestGooglePayData(paymentsClient: PaymentsClient, request: PaymentDataRequest, activity: Activity) =
-                AutoResolveHelper.resolveTask(paymentsClient.loadPaymentData(request), activity, REQUEST_CODE_GOOGLE_PAY_LOAD_PAYMENT_DATA)
+        internal fun requestGooglePayData(paymentsClient: PaymentsClient, request: PaymentDataRequest, activity: Activity) {
+            AutoResolveHelper.resolveTask(paymentsClient.loadPaymentData(request), activity, REQUEST_CODE_GOOGLE_PAY_LOAD_PAYMENT_DATA)
+        }
 
         /**
          * A convenience method for handling activity result messages returned from Google Pay.
@@ -202,23 +203,24 @@ class Simplify {
          * @see Simplify.requestGooglePayData
          */
         @JvmStatic
-        fun handleGooglePayResult(requestCode: Int, resultCode: Int, data: Intent?, callback: SimplifyGooglePayCallback): Boolean =
-                when (requestCode) {
-                    REQUEST_CODE_GOOGLE_PAY_LOAD_PAYMENT_DATA -> {
-                        when (resultCode) {
-                            Activity.RESULT_OK -> data?.run(PaymentData::getFromIntent)?.run(callback::onReceivedPaymentData)
-                                    ?: callback.onGooglePayError(Status.RESULT_INTERNAL_ERROR)
-                            Activity.RESULT_CANCELED -> callback.onGooglePayCancelled()
-                            AutoResolveHelper.RESULT_ERROR -> AutoResolveHelper.getStatusFromIntent(data)?.run(callback::onGooglePayError)
-                        }
-
-                        true
+        internal fun handleGooglePayResult(requestCode: Int, resultCode: Int, data: Intent?, callback: SimplifyGooglePayCallback): Boolean {
+            return when (requestCode) {
+                REQUEST_CODE_GOOGLE_PAY_LOAD_PAYMENT_DATA -> {
+                    when (resultCode) {
+                        Activity.RESULT_OK -> data?.run(PaymentData::getFromIntent)?.run(callback::onReceivedPaymentData)
+                                ?: callback.onGooglePayError(Status.RESULT_INTERNAL_ERROR)
+                        Activity.RESULT_CANCELED -> callback.onGooglePayCancelled()
+                        AutoResolveHelper.RESULT_ERROR -> AutoResolveHelper.getStatusFromIntent(data)?.run(callback::onGooglePayError)
                     }
-                    else -> false
+
+                    true
                 }
+                else -> false
+            }
+        }
 
         /**
-         * Starts the [Simplify3DSecureActivity] for result, and initializes it with the required 3DS info
+         * Starts the [SimplifySecure3DActivity] for result, and initializes it with the required 3DS info
          *
          * @param activity  The calling activity
          * @param cardToken A map of card token data with a valid card, containing 3DS data
@@ -227,13 +229,13 @@ class Simplify {
          */
         @JvmOverloads
         @JvmStatic
-        fun start3DSActivity(activity: Activity, cardToken: SimplifyMap, title: String? = null) =
-                cardToken["card.secure3DData"]?.run {
-                    Simplify3DSecureActivity.buildIntent(activity, cardToken, title).run {
-                        activity.startActivityForResult(this, REQUEST_CODE_3DS)
-                    }
+        fun start3DSActivity(activity: Activity, cardToken: SimplifyMap, title: String? = null) {
+            cardToken["card.secure3DData"]?.run {
+                SimplifySecure3DActivity.buildIntent(activity, cardToken, title).run {
+                    activity.startActivityForResult(this, REQUEST_CODE_3DS)
                 }
-                        ?: throw IllegalArgumentException("The provided card token must contain 3DS data.")
+            } ?: throw IllegalArgumentException("The provided card token must contain 3DS data.")
+        }
 
         /**
          *
@@ -257,30 +259,31 @@ class Simplify {
          * @throws IllegalArgumentException If callback is null
          */
         @JvmStatic
-        fun handle3DSResult(requestCode: Int, resultCode: Int, data: Intent?, callback: SimplifySecure3DCallback): Boolean =
-                when (requestCode) {
-                    REQUEST_CODE_3DS -> {
-                        when (resultCode) {
-                            Activity.RESULT_OK -> {
-                                try {
-                                    SimplifyMap(data!!.getStringExtra(Simplify3DSecureActivity.EXTRA_RESULT)).run {
-                                        when {
-                                            containsKey("secure3d.authenticated") -> callback.onSecure3DComplete(this["secure3d.authenticated"] as Boolean)
-                                            containsKey("secure3d.error") -> callback.onSecure3DError(this["secure3d.error.message"] as String)
-                                            else -> callback.onSecure3DError("Unknown error occurred during authentication")
-                                        }
+        fun handle3DSResult(requestCode: Int, resultCode: Int, data: Intent?, callback: SimplifySecure3DCallback): Boolean {
+            return when (requestCode) {
+                REQUEST_CODE_3DS -> {
+                    when (resultCode) {
+                        Activity.RESULT_OK -> {
+                            try {
+                                SimplifyMap(data!!.getStringExtra(SimplifySecure3DActivity.EXTRA_RESULT)).run {
+                                    when {
+                                        containsKey("secure3d.authenticated") -> callback.onSecure3DComplete(this["secure3d.authenticated"] as Boolean)
+                                        containsKey("secure3d.error") -> callback.onSecure3DError(this["secure3d.error.message"] as String)
+                                        else -> callback.onSecure3DError("Unknown error occurred during authentication")
                                     }
-                                } catch (e: Exception) {
-                                    callback.onSecure3DError("Unable to read 3DS result")
                                 }
+                            } catch (e: Exception) {
+                                callback.onSecure3DError("Unable to read 3DS result")
                             }
-                            else -> callback.onSecure3DCancel()
                         }
-
-                        true
+                        else -> callback.onSecure3DCancel()
                     }
-                    else -> false
+
+                    true
                 }
+                else -> false
+            }
+        }
     }
 }
 
