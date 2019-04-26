@@ -59,15 +59,11 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'androidx.appcompat:appcompat:1.1.0-alpha04'
     implementation 'com.google.android.material:material:1.0.0'
-    implementation 'androidx.constraintlayout:constraintlayout:2.0.0-alpha4'
+    implementation 'androidx.constraintlayout:constraintlayout:2.0.0-alpha5'
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 
     implementation 'com.google.code.gson:gson:2.8.2'
-
-    // optional for android pay
-    optional 'androidx.legacy:legacy-support-v4:1.0.0'
-    optional 'com.google.android.gms:play-services-wallet:16.0.1'
 
     // optional for rxjava
     optional 'io.reactivex.rxjava2:rxjava:2.2.7'
@@ -102,9 +98,11 @@ publishing {
             artifactId project.name
             version = libraryVersionName
 
-            artifact bundleReleaseAar
-            artifact dokkaJavadocsJar
-            artifact androidSourcesJar
+            afterEvaluate {
+                artifact bundleReleaseAar
+                artifact dokkaJavadocsJar
+                artifact androidSourcesJar
+            }
 
             pom.withXml {
                 def root = asNode()

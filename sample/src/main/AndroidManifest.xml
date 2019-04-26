@@ -3,31 +3,10 @@
     package="com.simplify.android.sdk.sample" >
 
     <application
-        android:name=".SimplifyApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
-
-        <!-- Add your live Simplify public key here -->
-        <meta-data
-            android:name="com.simplify.android.sdk.apiKey"
-            android:value="lvpb_OTA0NzkwNDktM2UwZC00NWU4LWJjMDMtOWYwN2RmZDY3Yzlh" />
-
-        <!-- Add your Android Pay public key here -->
-        <!-- To retrieve your Android Pay public key, visit your account settings at -->
-        <!-- https://www.simplify.com/commerce/app#/account/profile -->
-        <meta-data
-            android:name="com.simplify.android.sdk.androidPayPublicKey"
-            android:value="asd" />
-
-        <!-- Enables the Android Pay API -->
-        <meta-data
-            android:name="com.google.android.gms.wallet.api.enabled"
-            android:value="true" />
-        <meta-data
-            android:name="com.google.android.gms.version"
-            android:value="@integer/google_play_services_version" />
 
         <activity
             android:name=".MainActivity"
@@ -39,9 +18,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <activity android:name=".ConfirmationActivity"
-            android:screenOrientation="portrait"/>
 
         <activity android:name=".ThankYouActivity"
             android:screenOrientation="portrait"/>
