@@ -2,7 +2,6 @@ package com.simplify.android.sdk
 
 import android.os.Build
 import android.os.Handler
-import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import io.reactivex.Single
 import java.io.ByteArrayInputStream

@@ -98,8 +98,8 @@ class CardEditor constructor(context: Context, attrs: AttributeSet?, defStyle: I
     val card: SimplifyMap
         get() = SimplifyMap()
                 .set("number", binding.simplifyNumber.text.toString().replace("[^\\d]+".toRegex(), ""))
-                .set("expMonth", cardExpMonth)
-                .set("expYear", cardExpYear)
+                .set("expMonth", cardExpMonth ?: "")
+                .set("expYear", cardExpYear ?: "")
                 .set("cvc", binding.simplifyCvc.text.toString())
 
     /**

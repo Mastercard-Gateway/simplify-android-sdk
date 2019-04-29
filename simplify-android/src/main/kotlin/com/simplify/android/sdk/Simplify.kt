@@ -95,7 +95,6 @@ class Simplify(apiKey: String) {
         return PATTERN_API_KEY.toRegex().find(apiKey)?.groupValues?.get(1)?.let { group ->
             try {
                 // parse UUID
-
                 UUID.fromString(Base64.decode(group, Base64.DEFAULT).toString(Charset.defaultCharset()))
                 true
             } catch (e: Exception) {
