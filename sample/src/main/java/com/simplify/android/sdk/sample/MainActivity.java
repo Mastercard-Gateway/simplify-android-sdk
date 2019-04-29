@@ -15,6 +15,7 @@ import android.widget.Toast;
 import com.simplify.android.sdk.CardEditor;
 import com.simplify.android.sdk.SimplifyCallback;
 import com.simplify.android.sdk.Simplify;
+import com.simplify.android.sdk.SimplifyMap;
 import com.simplify.android.sdk.SimplifySecure3DCallback;
 
 
