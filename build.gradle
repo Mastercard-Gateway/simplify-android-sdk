@@ -26,12 +26,6 @@ allprojects {
         }
         jcenter()
         google()
-        maven {
-            url 'http://tools.labs.mastercard.com/artifactory/ext-release-local'
-        }
-        maven {
-            url 'http://tools.labs.mastercard.com/artifactory/ext-snapshot-local'
-        }
     }
 }
 
