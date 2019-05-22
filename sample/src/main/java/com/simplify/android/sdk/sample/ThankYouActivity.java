@@ -20,17 +20,7 @@ public class ThankYouActivity extends AppCompatActivity {
         int page = getIntent().getIntExtra(EXTRA_PAGE, PAGE_SUCCESS);
         ((ViewFlipper) findViewById(R.id.flipper_thankyou)).setDisplayedChild(page);
 
-        findViewById(R.id.text_shop_more).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                finish();
-            }
-        });
-        findViewById(R.id.text_try_again).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                finish();
-            }
-        });
+        findViewById(R.id.text_shop_more).setOnClickListener(v -> finish());
+        findViewById(R.id.text_try_again).setOnClickListener(v -> finish());
     }
 }

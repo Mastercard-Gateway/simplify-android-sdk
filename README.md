@@ -15,8 +15,3 @@ This library is hosted in the jCenter repository. To import the Android SDK, inc
 
 Consult the [Simplify Android SDK Wiki](https://github.com/simplifycom/simplify-android-sdk/wiki) page for instructions on how to use the SDK within your app.
 
-## Support
-
-For more information, visit [https://www.simplify.com/commerce/docs/sdk/android](https://www.simplify.com/commerce/docs/sdk/android)
-
-For support inquiries, visit [https://simplify.desk.com](https://simplify.desk.com)
