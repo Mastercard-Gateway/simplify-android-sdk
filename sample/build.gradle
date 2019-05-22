@@ -9,6 +9,8 @@ android {
         targetSdkVersion 28
         versionCode 1
         versionName '1.0.0'
+
+        buildConfigField "String", "API_KEY", "\"$simplifyApiKey\""
     }
 
     buildTypes {
@@ -16,6 +18,10 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+    }
+
+    dataBinding {
+        enabled = true
     }
 
     compileOptions {
@@ -26,9 +32,8 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'androidx.appcompat:appcompat:1.1.0-alpha03'
-    implementation 'com.google.android.material:material:1.1.0-alpha05'
-    implementation 'com.google.android.gms:play-services-wallet:16.0.1'
+    implementation 'androidx.appcompat:appcompat:1.1.0-alpha05'
+    implementation 'com.google.android.material:material:1.1.0-alpha06'
 
     implementation project(':simplify-android')
 }

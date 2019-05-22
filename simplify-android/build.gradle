@@ -37,8 +37,15 @@ android {
         }
     }
 
+    dataBinding {
+        enabled = true
+    }
+
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
+        debug.java.srcDirs += 'src/debug/kotlin'
+        release.java.srcDirs += 'src/release/kotlin'
+        test.java.srcDirs += 'src/test/kotlin'
     }
 }
 
@@ -50,20 +57,23 @@ configurations {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'androidx.appcompat:appcompat:1.1.0-alpha03'
+    implementation 'androidx.appcompat:appcompat:1.1.0-alpha05'
+    implementation 'com.google.android.material:material:1.0.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.0.0-beta1'
+
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 
     implementation 'com.google.code.gson:gson:2.8.2'
-
-    // optional for android pay
-    optional 'androidx.legacy:legacy-support-v4:1.0.0'
-    optional 'com.google.android.gms:play-services-wallet:16.0.1'
 
     // optional for rxjava
     optional 'io.reactivex.rxjava2:rxjava:2.2.7'
 
     testImplementation 'junit:junit:4.12'
+    testImplementation 'org.robolectric:robolectric:4.2'
     testImplementation 'org.mockito:mockito-core:2.25.0'
+    testImplementation 'com.nhaarman.mockitokotlin2:mockito-kotlin:2.1.0'
+    testImplementation "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
+    testImplementation "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
 }
 
 task dokkaJavadocs(type: org.jetbrains.dokka.gradle.DokkaTask) {
@@ -88,9 +98,11 @@ publishing {
             artifactId project.name
             version = libraryVersionName
 
-            artifact bundleReleaseAar
-            artifact dokkaJavadocsJar
-            artifact androidSourcesJar
+            afterEvaluate {
+                artifact bundleReleaseAar
+                artifact dokkaJavadocsJar
+                artifact androidSourcesJar
+            }
 
             pom.withXml {
                 def root = asNode()
