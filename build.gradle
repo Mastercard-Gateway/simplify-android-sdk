@@ -30,5 +30,5 @@ allprojects {
 }
 
 ext {
-    libraryVersionName = '3.4.0-SNAPSHOT'
+    libraryVersionName = '3.4.0'
 }
